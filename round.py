@@ -2,42 +2,84 @@ import json
 import math
 import cmath
 
+def MergeNearPoints(contour, threshold = 3):
+    # do merge until nothing to merge
+    merged = True
+    while merged:
+        merged = False
+        i = 0
+        while i < len(contour):
+            nextPointIndex = (0 if i + 1 == len(contour) else i + 1)
+            thisToNext = complex(contour[nextPointIndex]['x'] - contour[i]['x'], contour[nextPointIndex]['y'] - contour[i]['y'])
+            if abs(thisToNext) >= threshold:
+                i += 1
+                continue
+            
+            merged = True
+            # they are equal, merge to center
+            if contour[i]['on'] == contour[nextPointIndex]['on']:
+                contour[nextPointIndex]['x'] = (contour[i]['x'] + contour[nextPointIndex]['x']) / 2
+                contour[nextPointIndex]['y'] = (contour[i]['y'] + contour[nextPointIndex]['y']) / 2
+                del contour[i]
+            # this one is more important
+            elif contour[i]['on']:
+                del contour[nextPointIndex]
+            # next one is more important
+            else:
+                del contour[i]
+
+def ComplexVector(point1, point2):
+    return complex(point2['x'] - point1['x'], point2['y'] - point1['y'])
+
+def Get(contour, index, advance = 0):
+    index += advance
+    return contour[index % len(contour)]
+
+def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 20):
+    # do merge until nothing to merge
+    merged = True
+    while merged:
+        merged = False
+        i = 0
+        
+        while i < len(contour):
+            prev = Get(contour, i, -1)
+            this = Get(contour, i)
+            nextP = Get(contour, i, 1)
+
+            # this is a tangent point, cannot merge
+            if (prev['on'] and this['on'] and not nextP['on']) or (not prev['on'] and this['on'] and nextP['on']):
+                i += 1
+                continue
+
+            prevToThis = ComplexVector(prev, this)
+            thisToNext = ComplexVector(this, nextP)
+
+            # this is a curve point which cannot be merged
+            if (not prev['on'] and this['on'] and not nextP['on']) and abs(prevToThis - thisToNext) > 3:
+                i += 1
+                continue
+
+            # more tolerant for short edge
+            minEdge = min(abs(prevToThis), abs(thisToNext))
+            threshold = tolerance if minEdge >= shortEdgeLimit else tolerance * shortEdgeLimit / minEdge
+
+            # print("{}-{}-{}-{}".format(tolerance, prev, this, nextP))
+            if abs(cmath.phase(thisToNext / prevToThis)) > threshold:
+                i += 1
+                continue
+            
+            merged = True
+            contour.remove(this)
+
 # round conners of a glyph, assume outer outline is clockwise and inner outline in anti-clockwise
-
-def MergeNearPoints(glyph, threshold):
-    if 'contours' not in glyph:
-        return
-    for contour in glyph['contours']:
-        # do merge until nothing to merge
-        merged = True
-        while merged:
-            merged = False
-            i = 0
-            while i < len(contour):
-                nextPointIndex = (0 if i + 1 == len(contour) else i + 1)
-                thisToNext = complex(contour[nextPointIndex]['x'] - contour[i]['x'], contour[nextPointIndex]['y'] - contour[i]['y'])
-                if abs(thisToNext) >= threshold:
-                    i += 1
-                    continue
-                
-                merged = True
-                # they are equal, merge to center
-                if contour[i]['on'] == contour[nextPointIndex]['on']:
-                    contour[nextPointIndex]['x'] = (contour[i]['x'] + contour[nextPointIndex]['x']) / 2
-                    contour[nextPointIndex]['y'] = (contour[i]['y'] + contour[nextPointIndex]['y']) / 2
-                    del contour[i]
-                # this one is more important
-                elif contour[i]['on']:
-                    del contour[nextPointIndex]
-                # next one is more important
-                else:
-                    del contour[i]
-
 def RoundGlyph(glyph, outerRadius, innerRadius):
     if 'contours' not in glyph:
         return
-    MergeNearPoints(glyph, math.sqrt(outerRadius * innerRadius))
     for contour in glyph['contours']:
+        MergeNearPoints(contour)
+        MergeAlmostCollinear(contour)
+
         i = 0
         prevPointIndex = -1
         while i < len(contour):
@@ -48,9 +90,9 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
                 i += 1
                 continue
 
-            prevToThis = complex(contour[i]['x'] - contour[prevPointIndex]['x'], contour[i]['y'] - contour[prevPointIndex]['y'])
+            prevToThis = ComplexVector(contour[prevPointIndex], contour[i])
             nextPointIndex = (0 if i + 1 == len(contour) else i + 1)
-            thisToNext = complex(contour[nextPointIndex]['x'] - contour[i]['x'], contour[nextPointIndex]['y'] - contour[i]['y'])
+            thisToNext = ComplexVector(contour[i], contour[nextPointIndex])
             angle = cmath.phase(thisToNext / prevToThis)
             isCollinear = abs(angle) < math.pi / 180
 
@@ -86,16 +128,12 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 
             i += 1
 
-def RoundFont():
+# Name, Copyright and License
+def NameFont(font, region, weight, version):
+    isStandardStyle = weight == "Regular" or weight == "Bold"
 
-    with open("SourceHanSansCN-Medium.otd", 'rb') as baseFile:
-        baseFont = json.loads(
-            baseFile.read().decode('UTF-8', errors='replace'))
-
-    # Name, Copyright and License
-    baseFont['OS_2']['achVendID'] = 'Cyan'
-
-    baseFont['name'] = [
+    font['OS_2']['achVendID'] = 'Cyan'
+    font['name'] = [
         {
             "platformID": 3,
             "encodingID": 1,
@@ -108,42 +146,42 @@ def RoundFont():
             "encodingID": 1,
             "languageID": 1033,
             "nameID": 1,
-            "nameString": "Resource Han Rounded CN Medium"
+            "nameString": "Resource Han Rounded {}{}".format(region, "" if isStandardStyle else " " + weight)
         },
         {
             "platformID": 3,
             "encodingID": 1,
             "languageID": 1033,
             "nameID": 2,
-            "nameString": "Regular"
+            "nameString": "{}".format(weight if isStandardStyle else "Regular")
         },
         {
             "platformID": 3,
             "encodingID": 1,
             "languageID": 1033,
             "nameID": 3,
-            "nameString": "Resource Han Rounded CN Medium 1.9.9"
+            "nameString": "Resource Han Rounded {} {} {}".format(region, weight, version)
         },
         {
             "platformID": 3,
             "encodingID": 1,
             "languageID": 1033,
             "nameID": 4,
-            "nameString": "Resource Han Rounded CN Medium"
+            "nameString": "Resource Han Rounded {} {}".format(region, weight)
         },
         {
             "platformID": 3,
             "encodingID": 1,
             "languageID": 1033,
             "nameID": 5,
-            "nameString": "1.9.9"
+            "nameString": str(version)
         },
         {
             "platformID": 3,
             "encodingID": 1,
             "languageID": 1033,
             "nameID": 6,
-            "nameString": "Resource-Han-Rounded-CN-Medium"
+            "nameString": "Resource-Han-Rounded-{}-{}".format(region, weight)
         },
         {
             "platformID": 3,
@@ -185,19 +223,27 @@ def RoundFont():
             "encodingID": 1,
             "languageID": 1033,
             "nameID": 16,
-            "nameString": "Resource Han Rounded CN"
+            "nameString": "Resource Han Rounded {}".format(region)
         },
         {
             "platformID": 3,
             "encodingID": 1,
             "languageID": 1033,
             "nameID": 17,
-            "nameString": "Medium"
-        }
+            "nameString": str(weight)
+        },
     ]
 
+def RoundFont():
+
+    with open("SourceHanSansCN-Medium.otd", 'rb') as baseFile:
+        baseFont = json.loads(
+            baseFile.read().decode('UTF-8', errors='replace'))
+
+    NameFont(baseFont, "CN", "Medium", "1.9.9")
+
     for (_, glyph) in baseFont['glyf'].items():
-    	RoundGlyph(glyph, 50, 10)
+    	RoundGlyph(glyph, 60, 5)
 
     # output
     outStr = json.dumps(baseFont, ensure_ascii=False)
