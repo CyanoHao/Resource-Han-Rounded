@@ -51,8 +51,11 @@ def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 90)
 			this = Get(contour, i)
 			nextP = Get(contour, i, 1)
 
-			# this is a tangent point, cannot merge
-			if (prev['on'] and this['on'] and not nextP['on']) or (not prev['on'] and this['on'] and nextP['on']):
+			# there are only 3 conditions that may be merge-able
+			#   off -- on  -- off
+			#   on  -- on  -- on
+			#   on  -- off -- on
+			if (prev['on'] != nextP['on']) or (not prev['on'] and not this['on'] and not nextP['on']):
 				i += 1
 				continue
 
@@ -68,7 +71,6 @@ def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 90)
 			minEdge = min(abs(prevToThis), abs(thisToNext))
 			threshold = tolerance if minEdge >= shortEdgeLimit else math.atan(math.tan(tolerance) * 2 * shortEdgeLimit / minEdge)
 
-			# print("{}-{}-{}-{}".format(tolerance, prev, this, nextP))
 			if abs(cmath.phase(thisToNext / prevToThis)) > threshold:
 				i += 1
 				continue
@@ -76,68 +78,111 @@ def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 90)
 			merged = True
 			contour.remove(this)
 
-def NormalizeStrokeEnds(contour, tolerance = math.pi / 15, maxDistance = 90):
-		i = 0
-		while i < len(contour):
-			prev = Get(contour, i, -1)
-			this = Get(contour, i)
-			next1 = Get(contour, i, 1)
-			next2 = Get(contour, i, 2)
-			next3 = Get(contour, i, 3)
-			next4 = Get(contour, i, 4)
+def NormalizeStrokeEnds(contour, tolerance = math.pi / 12, maxDistance = 120):
+	if len(contour) <= 4:
+		return
+	i = 0
+	while i < len(contour):
+		prev = Get(contour, i, -1)
+		this = Get(contour, i)
+		next1 = Get(contour, i, 1)
+		next2 = Get(contour, i, 2)
+		next3 = Get(contour, i, 3)
+		next4 = Get(contour, i, 4)
 
-			# no off-curve point on the end
-			if this['on'] and next1['on']:
-				prevToThis = ComplexVector(prev, this)
-				thisToNext = ComplexVector(next1, next2)
-				end = ComplexVector(this, next1)
-				angle1 = cmath.phase(end / prevToThis)
-				angle2 = cmath.phase(thisToNext / end)
-				# they are outer conner, and they are close enough, and the 2 edges are almost parallel
-				if angle1 < 0 and angle2 < 0 and abs(end) < 2 * maxDistance and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < tolerance:
-					this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
-					this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
-					next1['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
-					next1['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
+		# no off-curve point on the end
+		if this['on'] and next1['on']:
+			prevToThis = ComplexVector(prev, this)
+			thisToNext = ComplexVector(next1, next2)
+			end = ComplexVector(this, next1)
+			angle1 = cmath.phase(end / prevToThis)
+			angle2 = cmath.phase(thisToNext / end)
+			# they are outer conner, and they are close enough, and the 2 edges are almost parallel
+			if angle1 < 0 and angle2 < 0 and abs(end) < 1.5 * maxDistance and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < tolerance:
+				this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
+				this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
+				next1['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
+				next1['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
 
-			# only 1 off-curve point on the end
-			elif this['on'] and not next1['on'] and next2['on']:
-				prevToThis = ComplexVector(prev, this)
-				thisToNext = ComplexVector(next2, next3)
-				end = ComplexVector(this, next2)
-				angle1 = cmath.phase(end / prevToThis)
-				angle2 = cmath.phase(thisToNext / end)
-				if angle1 < 0 and angle2 < 0 and max(Distance(this, next1), Distance(next1, next2)) < maxDistance and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < tolerance:
-					this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
-					this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
-					next2['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
-					next2['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
-					contour.remove(next1)
+		# only 1 off-curve point on the end
+		elif this['on'] and not next1['on'] and next2['on']:
+			prevToThis = ComplexVector(prev, this)
+			thisToNext = ComplexVector(next2, next3)
+			end = ComplexVector(this, next2)
+			angle1 = cmath.phase(end / prevToThis)
+			angle2 = cmath.phase(thisToNext / end)
+			if angle1 < 0 and angle2 < 0 and max(Distance(this, next1), Distance(next1, next2)) < maxDistance and abs(end) < 1.5 * maxDistance and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < tolerance:
+				this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
+				this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
+				next2['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
+				next2['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
+				contour.remove(next1)
 
-			# 2 off-curve point on the end
-			elif this['on'] and not next1['on'] and not next2['on'] and next3['on']:
-				prevToThis = ComplexVector(prev, this)
-				thisToNext = ComplexVector(next3, next4)
-				end = ComplexVector(this, next3)
-				angle1 = cmath.phase(end / prevToThis)
-				angle2 = cmath.phase(thisToNext / end)
-				if angle1 < 0 and angle2 < 0 and max(Distance(this, next1), Distance(this, next2), Distance(next1, next3), Distance(next2, next3)) < maxDistance and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < tolerance:
-					this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
-					this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
-					next3['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
-					next3['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
-					contour.remove(next1)
-					contour.remove(next2)
-
-			next1 = Get(contour, i, 1)
-			next2 = Get(contour, i, 2)
-			if Distance(this, prev) < 3:
-				contour.remove(prev)
-				i -= 1
-			if Distance(next1, next2) < 3:
+		# 2 off-curve point on the end
+		elif this['on'] and not next1['on'] and not next2['on'] and next3['on']:
+			prevToThis = ComplexVector(prev, this)
+			thisToNext = ComplexVector(next3, next4)
+			end = ComplexVector(this, next3)
+			angle1 = cmath.phase(end / prevToThis)
+			angle2 = cmath.phase(thisToNext / end)
+			if angle1 < 0 and angle2 < 0 and max(Distance(this, next1), Distance(this, next2), Distance(next1, next3), Distance(next2, next3)) < maxDistance and abs(end) < 1.5 * maxDistance and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < tolerance:
+				this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
+				this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
+				next3['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
+				next3['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
+				contour.remove(next1)
 				contour.remove(next2)
-				i -= 1
-			i += 1
+
+		next1 = Get(contour, i, 1)
+		next2 = Get(contour, i, 2)
+		if Distance(this, prev) < 3:
+			contour.remove(prev)
+			i -= 1
+		if Distance(next1, next2) < 3:
+			contour.remove(next2)
+			i -= 1
+		i += 1
+
+def InClosedInterval(x, a, b):
+	return x >= a and x <= b
+
+def Normalize折筆(contour, maxDistance = 120):
+	if len(contour) <= 4:
+		return
+	i = 0
+	while i < len(contour):
+		prev2 = Get(contour, i, -2)
+		prev1 = Get(contour, i, -1)
+		this = Get(contour, i)
+		next1 = Get(contour, i, 1)
+		next2 = Get(contour, i, 2)
+		next3 = Get(contour, i, 3)
+
+		if this['on'] and next1['on']:
+			prev2ToPrev = ComplexVector(prev2, prev1)
+			prevToThis = ComplexVector(prev1, this)
+			end = ComplexVector(this, next1)
+			thisToNext = ComplexVector(next1, next2)
+			nextToNext2 = ComplexVector(next2, next3)
+
+			# 横折
+			if InClosedInterval(cmath.phase(prevToThis), 0, math.pi / 6) and InClosedInterval(cmath.phase(thisToNext), -math.pi + math.pi / 30, -math.pi / 2) and abs(end) < maxDistance:
+				if abs(thisToNext) < maxDistance and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 6:
+					contour.remove(next2)
+					i -= 1
+				if abs(prevToThis) < maxDistance and abs(cmath.phase(prevToThis / prev2ToPrev)) < math.pi / 6:
+					contour.remove(prev1)
+					i -= 1
+
+			# 撇折
+			if (InClosedInterval(cmath.phase(prevToThis), -math.pi, -math.pi * 5 / 6) or InClosedInterval(cmath.phase(prevToThis + prev2ToPrev), -math.pi, -math.pi * 5 / 6)) and InClosedInterval(cmath.phase(thisToNext), math.pi / 30, math.pi / 6) and abs(end) < maxDistance:
+				if abs(thisToNext) < maxDistance / 2 and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 3:
+					contour.remove(next2)
+					i -= 1
+				if abs(prevToThis) < maxDistance / 2 and abs(cmath.phase(prevToThis / prev2ToPrev)) < math.pi / 3:
+					contour.remove(prev1)
+					i -= 1
+		i += 1
 
 # round conners of a glyph, assume outer outline is clockwise and inner outline in anti-clockwise
 def RoundGlyph(glyph, outerRadius, innerRadius):
@@ -147,15 +192,14 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 		MergeNearPoints(contour)
 		MergeAlmostCollinear(contour)
 		NormalizeStrokeEnds(contour)
+		Normalize折筆(contour)
 
 		i = 0
-		prevPointIndex = -1
 		while i < len(contour):
 
 			this = Get(contour, i)
 			# control point, pass
 			if not this['on']:
-				prevPointIndex = i
 				i += 1
 				continue
 
@@ -169,32 +213,50 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 
 			# curve point or tangent point, pass
 			if isCollinear:
-				prevPointIndex = i
 				i += 1
 				continue
 
 			# conner point:
 			radius = outerRadius if angle < 0 else innerRadius
 
-			isNextOuter = next1['on'] and cmath.phase(ComplexVector(next1, next2) / thisToNext) < -math.pi / 180
-			isNextInner = next1['on'] and cmath.phase(ComplexVector(next1, next2) / thisToNext) > math.pi / 180
-
 			# change this connor point to control point
 			this['on'] = False
 
-			prevPointIndex = i
+			if i != 0:
+				# decrease radius if no space for radius
+				radius1 = abs(prevToThis) if abs(prevToThis) < radius else radius
+				pointToInsert = {
+					'x': this['x'] - radius1 * math.cos(cmath.phase(prevToThis)),
+					'y': this['y'] - radius1 * math.sin(cmath.phase(prevToThis)),
+					'on': True}
+				
+				if Distance(prev, pointToInsert) > 3:
+					contour.insert(i, pointToInsert)
+					i += 1
+			# special for the first point
+			else:
+				prev2 = Get(contour, 0, -2)
+				isPrevOuter = prev['on'] and cmath.phase(prevToThis / ComplexVector(prev2, prev)) < -math.pi / 180
+				isPrevInner = prev['on'] and cmath.phase(prevToThis / ComplexVector(prev2, prev)) > math.pi / 180
 
-			# decrease radius if no space for radius
-			radius1 = abs(prevToThis) if abs(prevToThis) < radius else radius
-			pointToInsert = {
-				'x': this['x'] - radius1 * math.cos(cmath.phase(prevToThis)),
-				'y': this['y'] - radius1 * math.sin(cmath.phase(prevToThis)),
-				'on': True}
-			
-			if Distance(prev, pointToInsert) > 3:
-				contour.insert(i, pointToInsert)
-				prevPointIndex += 1
-				i += 1
+				radius1 = radius
+				if isPrevOuter:
+					radius1 = abs(prevToThis) / 2 if radius1 > abs(prevToThis) / 2 else radius1
+				elif isPrevInner:
+					radius1 = abs(prevToThis) - innerRadius if radius1 + innerRadius > abs(prevToThis) else radius1
+				else:
+					radius1 = abs(prevToThis) if radius1 > abs(prevToThis) else radius1
+				pointToInsert = {
+						'x': this['x'] - radius1 * math.cos(cmath.phase(prevToThis)),
+						'y': this['y'] - radius1 * math.sin(cmath.phase(prevToThis)),
+						'on': True}
+
+				if Distance(prev, pointToInsert) > 3:
+					contour.insert(i, pointToInsert)
+					i += 1
+
+			isNextOuter = next1['on'] and cmath.phase(ComplexVector(next1, next2) / thisToNext) < -math.pi / 180
+			isNextInner = next1['on'] and cmath.phase(ComplexVector(next1, next2) / thisToNext) > math.pi / 180
 
 			radius2 = radius
 			if isNextOuter:
@@ -331,10 +393,10 @@ def RoundFont():
 
 	NameFont(baseFont, "CN", "Medium", "1.9.9")
 
-	# for (_, glyph) in baseFont['glyf'].items():
-	# 	RoundGlyph(glyph, 60, 5)
-	RoundGlyph(baseFont['glyf']['uni4EAA'], 60, 5)
-	RoundGlyph(baseFont['glyf']['uni4EAB'], 60, 5)
+	for (_, glyph) in baseFont['glyf'].items():
+		RoundGlyph(glyph, 60, 5)
+	# RoundGlyph(baseFont['glyf']['uni4E26'], 60, 5)
+	# RoundGlyph(baseFont['glyf']['uni4EAB'], 60, 5)
 
 	# output
 	outStr = json.dumps(baseFont, ensure_ascii=False)
