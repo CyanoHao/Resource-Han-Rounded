@@ -8,9 +8,110 @@ def ComplexVector(point1, point2):
 def Distance(point1, point2):
 	return abs(ComplexVector(point1, point2))
 
+def Dot(cVec1, cVec2):
+	return cVec1.real * cVec2.real + cVec1.imag * cVec2.imag
+
 def Get(contour, index, advance = 0):
 	index += advance
 	return contour[index % len(contour)]
+
+def InClosedInterval(x, a, b):
+	return x >= a and x <= b
+
+def SeperateConjunctionImpl(glyph, maxDistance, visited):
+	contours = glyph['contours']
+	j = 0
+	while j < len(contours):
+		contour = contours[j]
+		MergeNearPoints(contour)
+		i = 0
+		while i < len(contour):
+			point = contour[i]
+			if point in visited:
+				i += 1
+				continue
+			visited.append(point)
+			
+			prev = Get(contour, i, -1)
+			nextP = Get(contour, i, 1)
+
+			# _____∠______..______∠_____
+			#  vec4     . ́   ̀.     vec1
+			#         . ́'      ̀:
+			#  vec3 . ́           ̀. vec2
+			vec1 = ComplexVector(prev, point)
+			vec2 = ComplexVector(point, nextP)
+
+			if cmath.phase(vec2 / vec1) > math.pi / 2:
+				# find conjunction in this contour
+				n = 0
+				while n < len(contour):
+					if n == i:
+						n += 1
+						continue
+					p = contour[n]
+					if Distance(p, point) < maxDistance:
+						pPrev = Get(contour, n, -1)
+						pNext = Get(contour, n, 1)
+						vec3 = ComplexVector(pPrev, p)
+						vec4 = ComplexVector(p, pNext)
+						if cmath.phase(vec4 / vec3) > math.pi / 2 and abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3) and Dot(ComplexVector(point, p), vec1) > 0:
+							if (i < n):
+								seperated = contour[i:n]
+							else:
+								seperated = contour[i:] + contour[:n]
+							mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
+							newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
+							newP = { 'x': (p['x'] + point['x']) / 2, 'y': (p['y'] + point['y']) / 2, 'on': False}
+							contour[n] = newP
+							seperated[0] = newPoint
+							contours.append(seperated)
+							if (i < n):
+								del contour[i:n]
+							else:
+								del contour[i:]
+								del contour[:n]
+							return True
+					n += 1
+
+				# find conjunction in other contours
+				m = 0
+				while m < len(contours):
+					if m == j:
+						m += 1
+						continue
+					another = contours[m]
+					n = 0
+					while n < len(another):
+						p = another[n]
+						if Distance(p, point) < maxDistance:
+							pPrev = Get(another, n, -1)
+							pNext = Get(another, n, 1)
+							vec3 = ComplexVector(pPrev, p)
+							vec4 = ComplexVector(p, pNext)
+							if cmath.phase(vec4 / vec3) > math.pi / 2 and abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3) and Dot(ComplexVector(point, p), vec1) > 0:
+
+								mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
+								newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
+								newP = { 'x': (p['x'] + point['x']) / 2, 'y': (p['y'] + point['y']) / 2, 'on': False}
+								
+								contour[i] = newPoint
+								another[n] = newP
+								contours[j] = contour[:i] + another[n:] + another[:n] + contour[i:]
+								contours.remove(another)
+								return True
+						n += 1
+					m += 1
+			i += 1
+		j += 1
+	return False
+
+def SeperateConjunction(glyph, maxDistance = 60):
+	if 'contours' not in glyph:
+		return
+	visited = []
+	while (SeperateConjunctionImpl(glyph, maxDistance, visited)):
+		pass
 
 def MergeNearPoints(contour, threshold = 3):
 	# do merge until nothing to merge
@@ -143,9 +244,6 @@ def NormalizeStrokeEnds(contour, tolerance = math.pi / 12, maxDistance = 120):
 			i -= 1
 		i += 1
 
-def InClosedInterval(x, a, b):
-	return x >= a and x <= b
-
 def Normalize折筆(contour, maxDistance = 120):
 	if len(contour) <= 4:
 		return
@@ -188,8 +286,12 @@ def Normalize折筆(contour, maxDistance = 120):
 def RoundGlyph(glyph, outerRadius, innerRadius):
 	if 'contours' not in glyph:
 		return
+
 	for contour in glyph['contours']:
 		MergeNearPoints(contour)
+	SeperateConjunction(glyph)
+
+	for contour in glyph['contours']:
 		MergeAlmostCollinear(contour)
 		NormalizeStrokeEnds(contour)
 		Normalize折筆(contour)
