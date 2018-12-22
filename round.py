@@ -35,23 +35,26 @@ def SeperateConjunctionImpl(glyph, maxDistance, visited):
 				continue
 			visited.append((point, vec1))
 
+			#           case 1
+			#
 			# _____∠______..______∠_____
 			#  vec4     . ́   ̀.     vec1
 			#         . ́'      ̀:
 			#  vec3 . ́           ̀. vec2
 			#
 			#             or
+			#           case 2
 			#
+			#               ↓ vec1
 			#               |
-			#               |
-			#  vec3         '----->-----
-			# -----------,         vec2
+			#  vec4         '----->-----
+			# -----<-----,         vec2
 			#            |
-			#            |
+			#       vec3 ↑
 			nextP = Get(contour, i, 1)
 			vec2 = ComplexVector(point, nextP)
 
-			if cmath.phase(vec2 / vec1) > math.pi / 2:
+			if cmath.phase(vec2 / vec1) > math.pi / 3:
 				# find conjunction in this contour
 				n = 0
 				while n < len(contour):
@@ -64,23 +67,46 @@ def SeperateConjunctionImpl(glyph, maxDistance, visited):
 						pNext = Get(contour, n, 1)
 						vec3 = ComplexVector(pPrev, p)
 						vec4 = ComplexVector(p, pNext)
-						if cmath.phase(vec4 / vec3) > math.pi / 2 and abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3) and Dot(ComplexVector(point, p), vec1) >= 0:
-							if (i < n):
-								seperated = contour[i:n]
-							else:
-								seperated = contour[i:] + contour[:n]
-							mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
-							newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
-							newP = { 'x': (p['x'] + point['x']) / 2, 'y': (p['y'] + point['y']) / 2, 'on': False}
-							contour[n] = newP
-							seperated[0] = newPoint
-							contours.append(seperated)
-							if (i < n):
-								del contour[i:n]
-							else:
-								del contour[i:]
-								del contour[:n]
-							return True
+						if cmath.phase(vec4 / vec3) > math.pi / 3 and Dot(ComplexVector(point, p), vec1) >= 0 and Dot(ComplexVector(point, p), vec4) >= 0:
+							# case 1
+							if abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3):
+								if (i < n):
+									seperated = contour[i:n]
+								else:
+									seperated = contour[i:] + contour[:n]
+								mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
+								newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
+								newP = { 'x': (p['x'] + point['x']) / 2, 'y': (p['y'] + point['y']) / 2, 'on': False}
+								contour[n] = newP
+								seperated[0] = newPoint
+								contours.append(seperated)
+								if (i < n):
+									del contour[i:n]
+								else:
+									del contour[i:]
+									del contour[:n]
+								return True
+							# case 2
+							elif InClosedInterval(cmath.phase(vec4 / vec1), -math.pi * 2 / 3, -math.pi / 3) and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3):
+								if (i < n):
+									seperated = contour[i:n]
+								else:
+									seperated = contour[i:] + contour[:n]
+								mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
+								newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
+
+								nu = (vec1.imag * (point['x'] - p['x']) - vec1.real * (point['y'] - p['y'])) / (vec4.real * vec1.imag - vec4.imag * vec1.real)
+								newP = { 'x': p['x'] + nu * vec4.real, 'y': p['y'] + nu * vec4.imag, 'on': True }
+
+								contour[n] = newP
+								seperated[0] = newPoint
+								contours.append(seperated)
+								if (i < n):
+									del contour[i:n]
+								else:
+									del contour[i:]
+									del contour[:n]
+								return True
 					n += 1
 
 				# find conjunction in other contours
@@ -98,19 +124,34 @@ def SeperateConjunctionImpl(glyph, maxDistance, visited):
 							pNext = Get(another, n, 1)
 							vec3 = ComplexVector(pPrev, p)
 							vec4 = ComplexVector(p, pNext)
-							if cmath.phase(vec4 / vec3) > math.pi / 2 and abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3) and Dot(ComplexVector(point, p), vec1) >= 0:
+							if cmath.phase(vec4 / vec3) > math.pi / 3 and Dot(ComplexVector(point, p), vec1) >= 0 and Dot(ComplexVector(point, p), vec4) >= 0:
+								# case 1
+								if abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3):
+									mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
+									newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
+									newP = { 'x': (p['x'] + point['x']) / 2, 'y': (p['y'] + point['y']) / 2, 'on': False}
+									
+									contour[i] = newPoint
+									another[n] = newP
+									contours[j] = contour[:i] + another[n:] + another[:n] + contour[i:]
+									contours.remove(another)
+									return True
+								# case 2
+								elif InClosedInterval(cmath.phase(vec4 / vec1), -math.pi * 2 / 3, -math.pi / 3) and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3):
+									mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
+									newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
+									
+									nu = (vec1.imag * (point['x'] - p['x']) - vec1.real * (point['y'] - p['y'])) / (vec4.real * vec1.imag - vec4.imag * vec1.real)
+									newP = { 'x': p['x'] + nu * vec4.real, 'y': p['y'] + nu * vec4.imag, 'on': True }
 
-								mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
-								newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
-								newP = { 'x': (p['x'] + point['x']) / 2, 'y': (p['y'] + point['y']) / 2, 'on': False}
-								
-								contour[i] = newPoint
-								another[n] = newP
-								contours[j] = contour[:i] + another[n:] + another[:n] + contour[i:]
-								contours.remove(another)
-								return True
+									contour[i] = newPoint
+									another[n] = newP
+									contours[j] = contour[:i] + another[n:] + another[:n] + contour[i:]
+									contours.remove(another)
+									return True
 						n += 1
 					m += 1
+
 			i += 1
 		j += 1
 	return False
@@ -167,21 +208,20 @@ def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 90)
 		while i < len(contour):
 			prev = Get(contour, i, -1)
 			this = Get(contour, i)
-			nextP = Get(contour, i, 1)
+			next1 = Get(contour, i, 1)
 
-			# there are only 3 conditions that may be merge-able
-			#   off -- on  -- off
-			#   on  -- on  -- on
-			#   on  -- off -- on
-			if (prev['on'] != nextP['on']) or (not prev['on'] and not this['on'] and not nextP['on']):
+			# 3 conditons that cannot be merged
+			#   on  -- on  -- off (and symmetric)
+			#   off -- off -- off
+			if (this['on'] and prev['on'] != next1['on']) or (not prev['on'] and not this['on'] and not next1['on']):
 				i += 1
 				continue
 
 			prevToThis = ComplexVector(prev, this)
-			thisToNext = ComplexVector(this, nextP)
+			thisToNext = ComplexVector(this, next1)
 
-			# this is a curve point which cannot be merged
-			if (not prev['on'] and this['on'] and not nextP['on']) and abs(prevToThis - thisToNext) > 3:
+			# off -- on -- off, but can not be merged
+			if (not prev['on'] and this['on'] and not next1['on']) and abs(prevToThis - thisToNext) > 3:
 				i += 1
 				continue
 
@@ -192,14 +232,32 @@ def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 90)
 			if abs(cmath.phase(thisToNext / prevToThis)) > threshold:
 				i += 1
 				continue
-			
+
 			merged = True
-			contour.remove(this)
+
+			# 3 conditions that can be simply merged
+			#   off -- on  -- off
+			#   on  -- on  -- on
+			#   on  -- off -- on
+			if (this['on'] and prev['on'] == next1['on']) or (prev['on'] and not this['on'] and next1['on']):
+				contour.remove(this)
+
+			# 2 conditions that need to insert an on-curve point
+			#   on -- off --(insert here)-- off (and symmetric)
+			else:
+				this['on'] = True
+				if prev['on']:
+					this['x'] = (this['x'] + next1['x']) / 2
+					this['y'] = (this['y'] + next1['y']) / 2
+				else:
+					this['x'] = (this['x'] + prev['x']) / 2
+					this['y'] = (this['y'] + prev['y']) / 2
+				i += 1
 
 def NormalizeStrokeEnds(contour, tolerance = math.pi / 12, maxDistance = 90):
 	i = 0
 	while i < len(contour):
-		if len(contour) <= 4:
+		if len(contour) < 4:
 			return
 
 		prev = Get(contour, i, -1)
@@ -268,7 +326,7 @@ def NormalizeStrokeEnds(contour, tolerance = math.pi / 12, maxDistance = 90):
 				merged = True
 
 		# 3 points on the end
-		if not merged and this['on'] and next4['on']:
+		if not merged and len(contour) > 4 and this['on'] and next4['on']:
 			prevToThis = ComplexVector(prev, this)
 			thisToNext = ComplexVector(next4, next5)
 			end = ComplexVector(this, next4)
@@ -388,7 +446,12 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 				continue
 
 			# conner point:
-			radius = innerRadius if angle > 0 else -2 * angle / math.pi * outerRadius
+			if angle > math.pi / 2:
+				radius = innerRadius
+			elif angle > 0:
+				radius = outerRadius / 2 - angle / math.pi * (outerRadius - 2 * innerRadius)
+			else:
+				radius = outerRadius / 2 - angle / math.pi * outerRadius
 
 			# change this connor point to control point
 			this['on'] = False
@@ -446,9 +509,6 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 				i += 1
 
 			i += 1
-
-		MergeNearPoints(contour)
-		MergeAlmostCollinear(contour)
 
 # Name, Copyright and License
 def NameFont(font, region, weight, version):
@@ -566,7 +626,7 @@ def RoundFont():
 
 	for (_, glyph) in baseFont['glyf'].items():
 		RoundGlyph(glyph, 60, 5)
-	# RoundGlyph(baseFont['glyf']['uni64EA'], 60, 5)
+	# RoundGlyph(baseFont['glyf']['uni866A'], 60, 5)
 	# RoundGlyph(baseFont['glyf']['uni4EAB'], 60, 5)
 
 	# output
