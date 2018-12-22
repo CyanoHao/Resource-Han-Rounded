@@ -1,0 +1,45 @@
+region=(J K SC TC HC JP KR CN TW HK)
+
+weight=(ExtraLight Light Normal Regular Medium Bold Heavy)
+
+shsR()
+{
+	[[ "$1" == "J" ]] || echo "$1"
+}
+
+cat >Makefile <<EOF
+.PHONY: all $(echo $(for w in ${weight[@]}; do echo $w; done))
+
+all: $(echo $(for w in ${weight[@]}; do echo $w; done))
+
+EOF
+
+for w in ${weight[@]}; do
+	cat >>Makefile <<EOF
+$w: ttc/ResourceHanRounded-$w.ttc $(echo $(for r in ${region[@]} ; do echo out/ResourceHanRounded$r-$w.ttf; done))
+
+ttc/ResourceHanRounded-$w.ttc: $(echo out/ResourceHanRounded{J,K,SC,TC,HC}-$w.ttf)
+	mkdir -p ttc
+	otf2otc -o \$@ \$^
+
+EOF
+	for r in ${region[@]}; do
+		cat >>Makefile <<EOF
+out/ResourceHanRounded$r-$w.otd: src/SourceHanSans$r-$w.otd
+	mkdir -p out
+	python round.py $r $w
+
+out/ResourceHanRounded$r-$w.ttf: out/ResourceHanRounded$r-$w.otd
+	otfccbuild -O2 -o \$@ $^
+
+src/SourceHanSans$r-$w.otd: src/SourceHanSans$r-$w.ttf 
+	otfccdump -o \$@ \$^
+
+src/SourceHanSans$r-$w.ttf: src/SourceHanSans$(shsR $r)-$w.otf
+	otfccdump --ignore-hints \$^ | otfcc-c2q | otfccbuild -O2 -o \$@
+
+EOF
+	done
+done
+
+

@@ -136,13 +136,7 @@ def SeperateConjunctionImpl(glyph, maxDistance, visited):
 							pNext = Get(another, n, 1)
 							vec3 = ComplexVector(pPrev, p)
 							vec4 = ComplexVector(p, pNext)
-							if (vec3 == 0):
-								print(glyph)
-								print("")
-								print(another)
-								print("")
-								print(p)
-								print("")
+
 							if cmath.phase(vec4 / vec3) > math.pi / 3 and Dot(ComplexVector(point, p), vec1) >= 0 and Dot(ComplexVector(point, p), vec4) >= 0:
 								# case 1
 								if abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3) and abs(cmath.phase(ComplexVector(point, p) / vec1)) < math.pi / 12:
@@ -312,13 +306,6 @@ def NormalizeStrokeEnds(contour, tolerance = math.pi / 12, maxDistance = 90):
 			prevToThis = ComplexVector(prev, this)
 			thisToNext = ComplexVector(next2, next3)
 			end = ComplexVector(this, next2)
-
-			if (end == 0):
-				print(contour)
-				print('')
-				print(this)
-				print('')
-
 			angle1 = cmath.phase(end / prevToThis)
 			angle2 = cmath.phase(thisToNext / end)
 
@@ -449,6 +436,7 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 	SeperateConjunction(glyph, maxDistance = outerRadius)
 
 	for contour in glyph['contours']:
+		MergeNearPoints(contour)
 		MergeAlmostCollinear(contour)
 		NormalizeStrokeEnds(contour, maxDistance = outerRadius * 1.5)
 		Normalize折筆(contour, maxDistance = outerRadius * 1.5)
@@ -467,11 +455,6 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 			next2 = Get(contour, i, 2)
 			prevToThis = ComplexVector(prev, this)
 			thisToNext = ComplexVector(this, next1)
-
-			if abs(prevToThis) == 0:
-				print(glyph)
-				print(contour)
-				print(this)
 
 			angle = cmath.phase(thisToNext / prevToThis)
 			isCollinear = abs(angle) < math.pi / 180
@@ -545,6 +528,8 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 				i += 1
 
 			i += 1
+		
+		MergeNearPoints(contour)
 
 # Name, Copyright and License
 def NameFont(font, region, weight, version):
@@ -662,8 +647,6 @@ def RoundFont(region, weight):
 
 	for (_, glyph) in baseFont['glyf'].items():
 		RoundGlyph(glyph, outerRadii[weight], innerRadii[weight])
-	# RoundGlyph(baseFont['glyf']['uni4D7F'], outerRadii[weight], innerRadii[weight])
-	# RoundGlyph(baseFont['glyf']['uni4EAB'], outerRadii[weight], innerRadii[weight])
 
 	# output
 	outStr = json.dumps(baseFont, ensure_ascii=False)
