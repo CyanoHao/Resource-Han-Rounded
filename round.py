@@ -1,6 +1,13 @@
 import json
+import sys
 import math
 import cmath
+
+version = "0.990"
+samePointThreshold = 3
+
+outerRadii = { 'ExtraLight': 24, 'Light': 36, 'Normal': 48, 'Regular': 52, 'Medium': 60, 'Bold': 75, 'Heavy': 84 }
+innerRadii = { 'ExtraLight': 5, 'Light': 5, 'Normal': 5, 'Regular': 5, 'Medium': 5, 'Bold': 5, 'Heavy': 5 }
 
 def ComplexVector(point1, point2):
 	return complex(point2['x'] - point1['x'], point2['y'] - point1['y'])
@@ -14,6 +21,10 @@ def Dot(cVec1, cVec2):
 def Get(contour, index, advance = 0):
 	index += advance
 	return contour[index % len(contour)]
+
+def Del(contour, index, advance = 0):
+	index += advance
+	del contour[index % len(contour)]
 
 def InClosedInterval(x, a, b):
 	return x >= a and x <= b
@@ -67,9 +78,10 @@ def SeperateConjunctionImpl(glyph, maxDistance, visited):
 						pNext = Get(contour, n, 1)
 						vec3 = ComplexVector(pPrev, p)
 						vec4 = ComplexVector(p, pNext)
+						# ComplexVector(point, p) may be zero
 						if cmath.phase(vec4 / vec3) > math.pi / 3 and Dot(ComplexVector(point, p), vec1) >= 0 and Dot(ComplexVector(point, p), vec4) >= 0:
 							# case 1
-							if abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3):
+							if abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3) and abs(cmath.phase(ComplexVector(point, p) / vec1)) < math.pi / 12:
 								if (i < n):
 									seperated = contour[i:n]
 								else:
@@ -124,9 +136,16 @@ def SeperateConjunctionImpl(glyph, maxDistance, visited):
 							pNext = Get(another, n, 1)
 							vec3 = ComplexVector(pPrev, p)
 							vec4 = ComplexVector(p, pNext)
+							if (vec3 == 0):
+								print(glyph)
+								print("")
+								print(another)
+								print("")
+								print(p)
+								print("")
 							if cmath.phase(vec4 / vec3) > math.pi / 3 and Dot(ComplexVector(point, p), vec1) >= 0 and Dot(ComplexVector(point, p), vec4) >= 0:
 								# case 1
-								if abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3):
+								if abs(cmath.phase(vec4 / vec1)) < math.pi / 30 and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3) and abs(cmath.phase(ComplexVector(point, p) / vec1)) < math.pi / 12:
 									mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
 									newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
 									newP = { 'x': (p['x'] + point['x']) / 2, 'y': (p['y'] + point['y']) / 2, 'on': False}
@@ -134,20 +153,20 @@ def SeperateConjunctionImpl(glyph, maxDistance, visited):
 									contour[i] = newPoint
 									another[n] = newP
 									contours[j] = contour[:i] + another[n:] + another[:n] + contour[i:]
-									contours.remove(another)
+									del contours[m]
 									return True
 								# case 2
 								elif InClosedInterval(cmath.phase(vec4 / vec1), -math.pi * 2 / 3, -math.pi / 3) and InClosedInterval(cmath.phase(vec2 / vec3), -math.pi * 2 / 3, -math.pi / 3):
 									mu = (vec3.imag * (p['x'] - point['x']) - vec3.real * (p['y'] - point['y'])) / (vec2.real * vec3.imag - vec2.imag * vec3.real)
 									newPoint = { 'x': point['x'] + mu * vec2.real, 'y': point['y'] + mu * vec2.imag, 'on': True }
-									
+
 									nu = (vec1.imag * (point['x'] - p['x']) - vec1.real * (point['y'] - p['y'])) / (vec4.real * vec1.imag - vec4.imag * vec1.real)
 									newP = { 'x': p['x'] + nu * vec4.real, 'y': p['y'] + nu * vec4.imag, 'on': True }
 
 									contour[i] = newPoint
 									another[n] = newP
 									contours[j] = contour[:i] + another[n:] + another[:n] + contour[i:]
-									contours.remove(another)
+									del contours[m]
 									return True
 						n += 1
 					m += 1
@@ -163,7 +182,7 @@ def SeperateConjunction(glyph, maxDistance = 60):
 	while (SeperateConjunctionImpl(glyph, maxDistance, visited)):
 		pass
 
-def MergeNearPoints(contour, threshold = 3):
+def MergeNearPoints(contour, threshold = samePointThreshold):
 	# do merge until nothing to merge
 	merged = True
 	while merged:
@@ -176,8 +195,8 @@ def MergeNearPoints(contour, threshold = 3):
 
 			if this['on'] and this == next2:
 				merged = True
-				contour.remove(next1)
-				contour.remove(this)
+				Del(contour, i, 1)
+				Del(contour, i)
 				continue
 
 			thisToNext = ComplexVector(this, next1)
@@ -190,13 +209,13 @@ def MergeNearPoints(contour, threshold = 3):
 			if this['on'] == next1['on']:
 				next1['x'] = (this['x'] + next1['x']) / 2
 				next1['y'] = (this['y'] + next1['y']) / 2
-				contour.remove(this)
+				Del(contour, i)
 			# this one is more important
 			elif this['on']:
-				contour.remove(next1)
+				Del(contour, i, 1)
 			# next one is more important
 			else:
-				contour.remove(this)
+				Del(contour, i)
 
 def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 90):
 	# do merge until nothing to merge
@@ -221,7 +240,7 @@ def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 90)
 			thisToNext = ComplexVector(this, next1)
 
 			# off -- on -- off, but can not be merged
-			if (not prev['on'] and this['on'] and not next1['on']) and abs(prevToThis - thisToNext) > 3:
+			if (not prev['on'] and this['on'] and not next1['on']) and abs(prevToThis - thisToNext) > samePointThreshold:
 				i += 1
 				continue
 
@@ -240,7 +259,7 @@ def MergeAlmostCollinear(contour, tolerance = math.pi / 60, shortEdgeLimit = 90)
 			#   on  -- on  -- on
 			#   on  -- off -- on
 			if (this['on'] and prev['on'] == next1['on']) or (prev['on'] and not this['on'] and next1['on']):
-				contour.remove(this)
+				Del(contour, i)
 
 			# 2 conditions that need to insert an on-curve point
 			#   on -- off --(insert here)-- off (and symmetric)
@@ -293,17 +312,24 @@ def NormalizeStrokeEnds(contour, tolerance = math.pi / 12, maxDistance = 90):
 			prevToThis = ComplexVector(prev, this)
 			thisToNext = ComplexVector(next2, next3)
 			end = ComplexVector(this, next2)
+
+			if (end == 0):
+				print(contour)
+				print('')
+				print(this)
+				print('')
+
 			angle1 = cmath.phase(end / prevToThis)
 			angle2 = cmath.phase(thisToNext / end)
 
 			minEdge = min(abs(prevToThis), abs(thisToNext))
 			threshold = tolerance if minEdge >= maxDistance else math.atan(math.tan(tolerance) * maxDistance / minEdge)
-			if angle1 < 0 and angle2 < 0 and max(Distance(this, next1), Distance(next1, next2)) < maxDistance and abs(end) < 1.5 * maxDistance and abs(cmath.phase(ComplexVector(this, next1) / ComplexVector(next1, next2))) < math.pi / 6 and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < threshold:
+			if angle1 < 0 and angle2 < 0 and max(Distance(this, next1), Distance(next1, next2)) < maxDistance and abs(end) < 1.5 * maxDistance and abs(cmath.phase(ComplexVector(this, next1) / ComplexVector(next1, next2))) < math.pi / 4 and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < threshold:
 				this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
 				this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
 				next2['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
 				next2['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
-				contour.remove(next1)
+				Del(contour, i, 1)
 				merged = True
 
 		# 2 points on the end
@@ -316,13 +342,13 @@ def NormalizeStrokeEnds(contour, tolerance = math.pi / 12, maxDistance = 90):
 
 			minEdge = min(abs(prevToThis), abs(thisToNext))
 			threshold = tolerance if minEdge >= maxDistance else math.atan(math.tan(tolerance) * maxDistance / minEdge)
-			if angle1 < 0 and angle2 < 0 and max(Distance(this, next1), Distance(next1, next2), Distance(next2, next3)) < maxDistance and abs(end) < 1.5 * maxDistance and abs(cmath.phase(ComplexVector(this, next1) / ComplexVector(next2, next3))) < math.pi / 6 and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < threshold:
+			if angle1 < 0 and angle2 < 0 and max(Distance(this, next1), Distance(next1, next2), Distance(next2, next3)) < maxDistance and abs(end) < 1.5 * maxDistance and abs(cmath.phase(ComplexVector(this, next1) / ComplexVector(next2, next3))) < math.pi / 4 and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < threshold:
 				this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
 				this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
 				next3['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
 				next3['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
-				contour.remove(next1)
-				contour.remove(next2)
+				Del(contour, i, 2)
+				Del(contour, i, 1)
 				merged = True
 
 		# 3 points on the end
@@ -330,29 +356,38 @@ def NormalizeStrokeEnds(contour, tolerance = math.pi / 12, maxDistance = 90):
 			prevToThis = ComplexVector(prev, this)
 			thisToNext = ComplexVector(next4, next5)
 			end = ComplexVector(this, next4)
-			angle1 = cmath.phase(end / prevToThis)
-			angle2 = cmath.phase(thisToNext / end)
 
-			minEdge = min(abs(prevToThis), abs(thisToNext))
-			threshold = tolerance if minEdge >= maxDistance else math.atan(math.tan(tolerance) * maxDistance / minEdge)
-			if angle1 < 0 and angle2 < 0 and max(Distance(this, next2), Distance(next1, next3), Distance(next2, next4)) < maxDistance and abs(end) < 1.5 * maxDistance and (abs(cmath.phase(ComplexVector(this, next2) / ComplexVector(next2, next4))) < math.pi / 6) and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < threshold:
-				this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
-				this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
-				next4['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
-				next4['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
-				contour.remove(next1)
-				contour.remove(next2)
-				contour.remove(next3)
-				merged = True
+			# end may be 0⃗
+			# +-----<-----+
+			# ↓           |
+			# |           ↑
+			# +----->-----+-----<-----
+			#             ↓
+			#             |
+			if (end != 0):
+				angle1 = cmath.phase(end / prevToThis)
+				angle2 = cmath.phase(thisToNext / end)
+
+				minEdge = min(abs(prevToThis), abs(thisToNext))
+				threshold = tolerance if minEdge >= maxDistance else math.atan(math.tan(tolerance) * maxDistance / minEdge)
+				if angle1 < 0 and angle2 < 0 and max(Distance(this, next2), Distance(next1, next3), Distance(next2, next4)) < maxDistance and abs(end) < 1.5 * maxDistance and (abs(cmath.phase(ComplexVector(this, next2) / ComplexVector(next2, next4))) < math.pi / 4) and abs(abs(cmath.phase(prevToThis) - cmath.phase(thisToNext)) - math.pi) < threshold:
+					this['x'] += abs(end) / 2 * math.cos(angle1) * math.cos(cmath.phase(prevToThis))
+					this['y'] += abs(end) / 2 * math.cos(angle1) * math.sin(cmath.phase(prevToThis))
+					next4['x'] -= abs(end) / 2 * math.cos(angle2) * math.cos(cmath.phase(thisToNext))
+					next4['y'] -= abs(end) / 2 * math.cos(angle2) * math.sin(cmath.phase(thisToNext))
+					Del(contour, i, 3)
+					Del(contour, i, 2)
+					Del(contour, i, 1)
+					merged = True
 
 		if merged:
 			next1 = Get(contour, i, 1)
 			next2 = Get(contour, i, 2)
-			if Distance(this, prev) < 3:
-				contour.remove(prev)
+			if Distance(this, prev) < samePointThreshold:
+				Del(contour, i, -1)
 				i -= 1
-			if Distance(next1, next2) < 3:
-				contour.remove(next2)
+			if Distance(next1, next2) < samePointThreshold:
+				Del(contour, i, 2)
 				i -= 1
 		i += 1
 
@@ -377,29 +412,29 @@ def Normalize折筆(contour, maxDistance = 90):
 
 			# 横折 without 頓筆, name can be confusing (actually, end should be thisToNext)
 			if InClosedInterval(cmath.phase(prevToThis), 0, math.pi / 6) and InClosedInterval(cmath.phase(end), -math.pi * 2 / 3, -math.pi / 2) and abs(end) < maxDistance:
-				if abs(end) < maxDistance and abs(cmath.phase(thisToNext / end)) < math.pi / 6:
-					contour.remove(next1)
-					i -= 1
 				if abs(prevToThis) < maxDistance and abs(cmath.phase(prevToThis / prev2ToPrev)) < math.pi / 6:
-					contour.remove(prev1)
+					Del(contour, i, -1)
+					i -= 1
+				if abs(end) < maxDistance and abs(cmath.phase(thisToNext / end)) < math.pi / 6:
+					Del(contour, i, 1)
 					i -= 1
 
 			# 横折 with 頓筆
-			if InClosedInterval(cmath.phase(prevToThis), 0, math.pi / 6) and InClosedInterval(cmath.phase(thisToNext), -math.pi + math.pi / 30, -math.pi / 2) and abs(end) < maxDistance:
-				if abs(thisToNext) < maxDistance and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 6:
-					contour.remove(next2)
-					i -= 1
+			elif InClosedInterval(cmath.phase(prevToThis), 0, math.pi / 6) and InClosedInterval(cmath.phase(thisToNext), -math.pi + math.pi / 30, -math.pi / 2) and abs(end) < maxDistance:
 				if abs(prevToThis) < maxDistance and abs(cmath.phase(prevToThis / prev2ToPrev)) < math.pi / 6:
-					contour.remove(prev1)
+					Del(contour, i, -1)
+					i -= 1
+				if abs(thisToNext) < maxDistance and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 6:
+					Del(contour, i, 2)
 					i -= 1
 
 			# possibly 撇折
-			if (InClosedInterval(cmath.phase(prevToThis), -math.pi, -math.pi * 5 / 6) or InClosedInterval(cmath.phase(prevToThis + prev2ToPrev), -math.pi, -math.pi * 5 / 6)) and InClosedInterval(cmath.phase(thisToNext), math.pi / 30, math.pi / 6) and abs(end) < 1.5 * maxDistance:
-				if (abs(thisToNext) < maxDistance / 3 and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 3) or (abs(thisToNext) < maxDistance / 2 and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 4) or (abs(thisToNext) < maxDistance and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 6):
-					contour.remove(next2)
-					i -= 1
+			elif (InClosedInterval(cmath.phase(prevToThis), -math.pi, -math.pi * 5 / 6) or InClosedInterval(cmath.phase(prevToThis + prev2ToPrev), -math.pi, -math.pi * 5 / 6)) and InClosedInterval(cmath.phase(thisToNext), math.pi / 30, math.pi / 6) and abs(end) < 1.5 * maxDistance:
 				if (abs(prevToThis) < maxDistance / 3 and abs(cmath.phase(prevToThis / prev2ToPrev)) < math.pi / 3) or (abs(prevToThis) < maxDistance / 2 and abs(cmath.phase(prevToThis / prev2ToPrev)) < math.pi / 4) or (abs(prevToThis) < maxDistance and abs(cmath.phase(prevToThis / prev2ToPrev)) < math.pi / 6):
-					contour.remove(prev1)
+					Del(contour, i, -1)
+					i -= 1
+				if (abs(thisToNext) < maxDistance / 3 and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 3) or (abs(thisToNext) < maxDistance / 2 and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 4) or (abs(thisToNext) < maxDistance and abs(cmath.phase(nextToNext2 / thisToNext)) < math.pi / 6):
+					Del(contour, i, 2)
 					i -= 1
 		i += 1
 
@@ -410,12 +445,13 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 
 	for contour in glyph['contours']:
 		MergeNearPoints(contour)
-	SeperateConjunction(glyph)
+		MergeAlmostCollinear(contour)
+	SeperateConjunction(glyph, maxDistance = outerRadius)
 
 	for contour in glyph['contours']:
 		MergeAlmostCollinear(contour)
-		NormalizeStrokeEnds(contour)
-		Normalize折筆(contour)
+		NormalizeStrokeEnds(contour, maxDistance = outerRadius * 1.5)
+		Normalize折筆(contour, maxDistance = outerRadius * 1.5)
 
 		i = 0
 		while i < len(contour):
@@ -464,7 +500,7 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 					'y': this['y'] - radius1 * math.sin(cmath.phase(prevToThis)),
 					'on': True}
 				
-				if Distance(prev, pointToInsert) > 3:
+				if Distance(prev, pointToInsert) > samePointThreshold:
 					contour.insert(i, pointToInsert)
 					i += 1
 			# special for the first point
@@ -485,7 +521,7 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 						'y': this['y'] - radius1 * math.sin(cmath.phase(prevToThis)),
 						'on': True}
 
-				if Distance(prev, pointToInsert) > 3 and Distance(this, pointToInsert) > 3:
+				if Distance(prev, pointToInsert) > samePointThreshold and Distance(this, pointToInsert) > samePointThreshold:
 					contour.insert(i, pointToInsert)
 					i += 1
 
@@ -504,7 +540,7 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 					'y': this['y'] + radius2 * math.sin(cmath.phase(thisToNext)),
 					'on': True}
 
-			if Distance(pointToInsert, next1) > 3 and Distance(this, pointToInsert) > 3:
+			if Distance(pointToInsert, next1) > samePointThreshold and Distance(this, pointToInsert) > samePointThreshold:
 				contour.insert(i + 1, pointToInsert)
 				i += 1
 
@@ -521,7 +557,7 @@ def NameFont(font, region, weight, version):
 			"encodingID": 1,
 			"languageID": 1033,
 			"nameID": 0,
-			"nameString": "Copyright © 2018 Cyano Hao. Portions © 2014, 2015, 2018 Adobe (http://www.adobe.com/)."
+			"nameString": "Copyright © 2018—2019 Cyano Hao. Portions © 2014, 2015, 2018 Adobe (http://www.adobe.com/)."
 		},
 		{
 			"platformID": 3,
@@ -616,23 +652,26 @@ def NameFont(font, region, weight, version):
 		},
 	]
 
-def RoundFont():
+def RoundFont(region, weight):
 
-	with open("SourceHanSansCN-Medium.otd", 'rb') as baseFile:
+	with open("src/SourceHanSans{}-{}.otd".format(region, weight), 'rb') as baseFile:
 		baseFont = json.loads(
 			baseFile.read().decode('UTF-8', errors='replace'))
 
-	NameFont(baseFont, "CN", "Medium", "1.9.9")
+	NameFont(baseFont, region, weight, version)
 
 	for (_, glyph) in baseFont['glyf'].items():
-		RoundGlyph(glyph, 60, 5)
-	# RoundGlyph(baseFont['glyf']['uni866A'], 60, 5)
-	# RoundGlyph(baseFont['glyf']['uni4EAB'], 60, 5)
+		RoundGlyph(glyph, outerRadii[weight], innerRadii[weight])
+	# RoundGlyph(baseFont['glyf']['uni4D7F'], outerRadii[weight], innerRadii[weight])
+	# RoundGlyph(baseFont['glyf']['uni4EAB'], outerRadii[weight], innerRadii[weight])
 
 	# output
 	outStr = json.dumps(baseFont, ensure_ascii=False)
-	with open("ResourceHanRoundedCN-Medium.otd", 'w') as outFile:
+	with open("out/ResourceHanRounded{}-{}.otd".format(region, weight), 'w') as outFile:
 		outFile.write(outStr)
 
 
-RoundFont()
+if __name__ == '__main__':
+	region = sys.argv[1]
+	weight = sys.argv[2]
+	RoundFont(region, weight)
