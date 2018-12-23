@@ -2,6 +2,8 @@
 
 This font is derived from [Source Han Sans](https://github.com/adobe-fonts/source-han-sans).
 
+![Preview](preview.png)
+
 ## Download the Fonts<br>下载字体
 
 [Latest Release / 最新版](https://github.com/CyanoHao/Resource-Han-Rounded/releases).
