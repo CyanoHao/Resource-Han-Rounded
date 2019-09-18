@@ -4,20 +4,20 @@ This font is derived from [Source Han Sans](https://github.com/adobe-fonts/sourc
 
 ![Preview](preview.png)
 
-## Download the Fonts<br>下载字体
+## Download
 
-[Latest Release / 最新版](https://github.com/CyanoHao/Resource-Han-Rounded/releases).
+[Latest Release](https://github.com/CyanoHao/Resource-Han-Rounded/releases).
 
-* **TTF**: Each variant (J, K, SC, TC, HC) contains all glyphs, **recommended**.
-* **TTC**: Pack 5 variants to a single `ttc` file.
-* **CN**: contains almost all glyphs except Hangul.<br>包含除韩语谚文外的所有字符，**推荐简体中文用户使用**。
-* **TW** / **HK**: supports Chinese characters (漢字) defined in Big5 character set.
-* **JP**: supports kanji (漢字) defined in JIS character set.
-* **KR**: supports all Hangul (한글), and Hanja (한자) defined in KS character set.
+* **TTF**: language-specific TTFs, recommended for legacy typographic technology or futher development.
+* **TTC**: pack 5 TTFs to a single TTC file for each weight, recommended for modern typographic technology.
+* **CN** / **TW** / **HK** / **JP** / **KR**: region-specific subset TTFs, following [Source Han Sans](https://github.com/adobe-fonts/source-han-sans) notations.
 
 ## How to Build
 
-Dependencies: Python, [otfcc](https://github.com/caryll/otfcc), [otfcc-c2q](https://www.npmjs.com/package/otfcc-c2q), [afdko](https://pypi.org/project/afdko/).
+Dependencies:
++ Python;
++ [afdko](https://pypi.org/project/afdko/);
++ [otfcc](https://github.com/caryll/otfcc).
 
 Put SHS files (OTF and Subset OTF) into `src/`, then
 ```bash
