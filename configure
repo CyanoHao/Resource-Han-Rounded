@@ -30,7 +30,7 @@ out/MSOffice-RHR-$r-$w.otd: src/SourceHanSans$r-$w.otd
 	python round.py $r $w
 
 out/MSOffice-RHR-$r-$w.ttf: out/MSOffice-RHR-$r-$w.otd
-	otfccbuild -O2 -o \$@ $^
+	otfccbuild -O2 -s -o \$@ $^
 
 src/SourceHanSans$r-$w.otd: src/SourceHanSans$r-$w.ttf 
 	otfccdump -o \$@ \$^

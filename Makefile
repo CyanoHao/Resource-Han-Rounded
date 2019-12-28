@@ -13,7 +13,7 @@ out/MSOffice-RHR-J-ExtraLight.otd: src/SourceHanSansJ-ExtraLight.otd
 	python round.py J ExtraLight
 
 out/MSOffice-RHR-J-ExtraLight.ttf: out/MSOffice-RHR-J-ExtraLight.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansJ-ExtraLight.otd: src/SourceHanSansJ-ExtraLight.ttf 
 	otfccdump -o $@ $^
@@ -26,7 +26,7 @@ out/MSOffice-RHR-K-ExtraLight.otd: src/SourceHanSansK-ExtraLight.otd
 	python round.py K ExtraLight
 
 out/MSOffice-RHR-K-ExtraLight.ttf: out/MSOffice-RHR-K-ExtraLight.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansK-ExtraLight.otd: src/SourceHanSansK-ExtraLight.ttf 
 	otfccdump -o $@ $^
@@ -39,7 +39,7 @@ out/MSOffice-RHR-SC-ExtraLight.otd: src/SourceHanSansSC-ExtraLight.otd
 	python round.py SC ExtraLight
 
 out/MSOffice-RHR-SC-ExtraLight.ttf: out/MSOffice-RHR-SC-ExtraLight.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansSC-ExtraLight.otd: src/SourceHanSansSC-ExtraLight.ttf 
 	otfccdump -o $@ $^
@@ -52,7 +52,7 @@ out/MSOffice-RHR-TC-ExtraLight.otd: src/SourceHanSansTC-ExtraLight.otd
 	python round.py TC ExtraLight
 
 out/MSOffice-RHR-TC-ExtraLight.ttf: out/MSOffice-RHR-TC-ExtraLight.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansTC-ExtraLight.otd: src/SourceHanSansTC-ExtraLight.ttf 
 	otfccdump -o $@ $^
@@ -65,7 +65,7 @@ out/MSOffice-RHR-HC-ExtraLight.otd: src/SourceHanSansHC-ExtraLight.otd
 	python round.py HC ExtraLight
 
 out/MSOffice-RHR-HC-ExtraLight.ttf: out/MSOffice-RHR-HC-ExtraLight.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansHC-ExtraLight.otd: src/SourceHanSansHC-ExtraLight.ttf 
 	otfccdump -o $@ $^
@@ -84,7 +84,7 @@ out/MSOffice-RHR-J-Light.otd: src/SourceHanSansJ-Light.otd
 	python round.py J Light
 
 out/MSOffice-RHR-J-Light.ttf: out/MSOffice-RHR-J-Light.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansJ-Light.otd: src/SourceHanSansJ-Light.ttf 
 	otfccdump -o $@ $^
@@ -97,7 +97,7 @@ out/MSOffice-RHR-K-Light.otd: src/SourceHanSansK-Light.otd
 	python round.py K Light
 
 out/MSOffice-RHR-K-Light.ttf: out/MSOffice-RHR-K-Light.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansK-Light.otd: src/SourceHanSansK-Light.ttf 
 	otfccdump -o $@ $^
@@ -110,7 +110,7 @@ out/MSOffice-RHR-SC-Light.otd: src/SourceHanSansSC-Light.otd
 	python round.py SC Light
 
 out/MSOffice-RHR-SC-Light.ttf: out/MSOffice-RHR-SC-Light.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansSC-Light.otd: src/SourceHanSansSC-Light.ttf 
 	otfccdump -o $@ $^
@@ -123,7 +123,7 @@ out/MSOffice-RHR-TC-Light.otd: src/SourceHanSansTC-Light.otd
 	python round.py TC Light
 
 out/MSOffice-RHR-TC-Light.ttf: out/MSOffice-RHR-TC-Light.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansTC-Light.otd: src/SourceHanSansTC-Light.ttf 
 	otfccdump -o $@ $^
@@ -136,7 +136,7 @@ out/MSOffice-RHR-HC-Light.otd: src/SourceHanSansHC-Light.otd
 	python round.py HC Light
 
 out/MSOffice-RHR-HC-Light.ttf: out/MSOffice-RHR-HC-Light.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansHC-Light.otd: src/SourceHanSansHC-Light.ttf 
 	otfccdump -o $@ $^
@@ -155,7 +155,7 @@ out/MSOffice-RHR-J-Normal.otd: src/SourceHanSansJ-Normal.otd
 	python round.py J Normal
 
 out/MSOffice-RHR-J-Normal.ttf: out/MSOffice-RHR-J-Normal.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansJ-Normal.otd: src/SourceHanSansJ-Normal.ttf 
 	otfccdump -o $@ $^
@@ -168,7 +168,7 @@ out/MSOffice-RHR-K-Normal.otd: src/SourceHanSansK-Normal.otd
 	python round.py K Normal
 
 out/MSOffice-RHR-K-Normal.ttf: out/MSOffice-RHR-K-Normal.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansK-Normal.otd: src/SourceHanSansK-Normal.ttf 
 	otfccdump -o $@ $^
@@ -181,7 +181,7 @@ out/MSOffice-RHR-SC-Normal.otd: src/SourceHanSansSC-Normal.otd
 	python round.py SC Normal
 
 out/MSOffice-RHR-SC-Normal.ttf: out/MSOffice-RHR-SC-Normal.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansSC-Normal.otd: src/SourceHanSansSC-Normal.ttf 
 	otfccdump -o $@ $^
@@ -194,7 +194,7 @@ out/MSOffice-RHR-TC-Normal.otd: src/SourceHanSansTC-Normal.otd
 	python round.py TC Normal
 
 out/MSOffice-RHR-TC-Normal.ttf: out/MSOffice-RHR-TC-Normal.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansTC-Normal.otd: src/SourceHanSansTC-Normal.ttf 
 	otfccdump -o $@ $^
@@ -207,7 +207,7 @@ out/MSOffice-RHR-HC-Normal.otd: src/SourceHanSansHC-Normal.otd
 	python round.py HC Normal
 
 out/MSOffice-RHR-HC-Normal.ttf: out/MSOffice-RHR-HC-Normal.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansHC-Normal.otd: src/SourceHanSansHC-Normal.ttf 
 	otfccdump -o $@ $^
@@ -226,7 +226,7 @@ out/MSOffice-RHR-J-Regular.otd: src/SourceHanSansJ-Regular.otd
 	python round.py J Regular
 
 out/MSOffice-RHR-J-Regular.ttf: out/MSOffice-RHR-J-Regular.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansJ-Regular.otd: src/SourceHanSansJ-Regular.ttf 
 	otfccdump -o $@ $^
@@ -239,7 +239,7 @@ out/MSOffice-RHR-K-Regular.otd: src/SourceHanSansK-Regular.otd
 	python round.py K Regular
 
 out/MSOffice-RHR-K-Regular.ttf: out/MSOffice-RHR-K-Regular.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansK-Regular.otd: src/SourceHanSansK-Regular.ttf 
 	otfccdump -o $@ $^
@@ -252,7 +252,7 @@ out/MSOffice-RHR-SC-Regular.otd: src/SourceHanSansSC-Regular.otd
 	python round.py SC Regular
 
 out/MSOffice-RHR-SC-Regular.ttf: out/MSOffice-RHR-SC-Regular.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansSC-Regular.otd: src/SourceHanSansSC-Regular.ttf 
 	otfccdump -o $@ $^
@@ -265,7 +265,7 @@ out/MSOffice-RHR-TC-Regular.otd: src/SourceHanSansTC-Regular.otd
 	python round.py TC Regular
 
 out/MSOffice-RHR-TC-Regular.ttf: out/MSOffice-RHR-TC-Regular.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansTC-Regular.otd: src/SourceHanSansTC-Regular.ttf 
 	otfccdump -o $@ $^
@@ -278,7 +278,7 @@ out/MSOffice-RHR-HC-Regular.otd: src/SourceHanSansHC-Regular.otd
 	python round.py HC Regular
 
 out/MSOffice-RHR-HC-Regular.ttf: out/MSOffice-RHR-HC-Regular.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansHC-Regular.otd: src/SourceHanSansHC-Regular.ttf 
 	otfccdump -o $@ $^
@@ -297,7 +297,7 @@ out/MSOffice-RHR-J-Medium.otd: src/SourceHanSansJ-Medium.otd
 	python round.py J Medium
 
 out/MSOffice-RHR-J-Medium.ttf: out/MSOffice-RHR-J-Medium.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansJ-Medium.otd: src/SourceHanSansJ-Medium.ttf 
 	otfccdump -o $@ $^
@@ -310,7 +310,7 @@ out/MSOffice-RHR-K-Medium.otd: src/SourceHanSansK-Medium.otd
 	python round.py K Medium
 
 out/MSOffice-RHR-K-Medium.ttf: out/MSOffice-RHR-K-Medium.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansK-Medium.otd: src/SourceHanSansK-Medium.ttf 
 	otfccdump -o $@ $^
@@ -323,7 +323,7 @@ out/MSOffice-RHR-SC-Medium.otd: src/SourceHanSansSC-Medium.otd
 	python round.py SC Medium
 
 out/MSOffice-RHR-SC-Medium.ttf: out/MSOffice-RHR-SC-Medium.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansSC-Medium.otd: src/SourceHanSansSC-Medium.ttf 
 	otfccdump -o $@ $^
@@ -336,7 +336,7 @@ out/MSOffice-RHR-TC-Medium.otd: src/SourceHanSansTC-Medium.otd
 	python round.py TC Medium
 
 out/MSOffice-RHR-TC-Medium.ttf: out/MSOffice-RHR-TC-Medium.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansTC-Medium.otd: src/SourceHanSansTC-Medium.ttf 
 	otfccdump -o $@ $^
@@ -349,7 +349,7 @@ out/MSOffice-RHR-HC-Medium.otd: src/SourceHanSansHC-Medium.otd
 	python round.py HC Medium
 
 out/MSOffice-RHR-HC-Medium.ttf: out/MSOffice-RHR-HC-Medium.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansHC-Medium.otd: src/SourceHanSansHC-Medium.ttf 
 	otfccdump -o $@ $^
@@ -368,7 +368,7 @@ out/MSOffice-RHR-J-Bold.otd: src/SourceHanSansJ-Bold.otd
 	python round.py J Bold
 
 out/MSOffice-RHR-J-Bold.ttf: out/MSOffice-RHR-J-Bold.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansJ-Bold.otd: src/SourceHanSansJ-Bold.ttf 
 	otfccdump -o $@ $^
@@ -381,7 +381,7 @@ out/MSOffice-RHR-K-Bold.otd: src/SourceHanSansK-Bold.otd
 	python round.py K Bold
 
 out/MSOffice-RHR-K-Bold.ttf: out/MSOffice-RHR-K-Bold.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansK-Bold.otd: src/SourceHanSansK-Bold.ttf 
 	otfccdump -o $@ $^
@@ -394,7 +394,7 @@ out/MSOffice-RHR-SC-Bold.otd: src/SourceHanSansSC-Bold.otd
 	python round.py SC Bold
 
 out/MSOffice-RHR-SC-Bold.ttf: out/MSOffice-RHR-SC-Bold.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansSC-Bold.otd: src/SourceHanSansSC-Bold.ttf 
 	otfccdump -o $@ $^
@@ -407,7 +407,7 @@ out/MSOffice-RHR-TC-Bold.otd: src/SourceHanSansTC-Bold.otd
 	python round.py TC Bold
 
 out/MSOffice-RHR-TC-Bold.ttf: out/MSOffice-RHR-TC-Bold.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansTC-Bold.otd: src/SourceHanSansTC-Bold.ttf 
 	otfccdump -o $@ $^
@@ -420,7 +420,7 @@ out/MSOffice-RHR-HC-Bold.otd: src/SourceHanSansHC-Bold.otd
 	python round.py HC Bold
 
 out/MSOffice-RHR-HC-Bold.ttf: out/MSOffice-RHR-HC-Bold.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansHC-Bold.otd: src/SourceHanSansHC-Bold.ttf 
 	otfccdump -o $@ $^
@@ -439,7 +439,7 @@ out/MSOffice-RHR-J-Heavy.otd: src/SourceHanSansJ-Heavy.otd
 	python round.py J Heavy
 
 out/MSOffice-RHR-J-Heavy.ttf: out/MSOffice-RHR-J-Heavy.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansJ-Heavy.otd: src/SourceHanSansJ-Heavy.ttf 
 	otfccdump -o $@ $^
@@ -452,7 +452,7 @@ out/MSOffice-RHR-K-Heavy.otd: src/SourceHanSansK-Heavy.otd
 	python round.py K Heavy
 
 out/MSOffice-RHR-K-Heavy.ttf: out/MSOffice-RHR-K-Heavy.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansK-Heavy.otd: src/SourceHanSansK-Heavy.ttf 
 	otfccdump -o $@ $^
@@ -465,7 +465,7 @@ out/MSOffice-RHR-SC-Heavy.otd: src/SourceHanSansSC-Heavy.otd
 	python round.py SC Heavy
 
 out/MSOffice-RHR-SC-Heavy.ttf: out/MSOffice-RHR-SC-Heavy.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansSC-Heavy.otd: src/SourceHanSansSC-Heavy.ttf 
 	otfccdump -o $@ $^
@@ -478,7 +478,7 @@ out/MSOffice-RHR-TC-Heavy.otd: src/SourceHanSansTC-Heavy.otd
 	python round.py TC Heavy
 
 out/MSOffice-RHR-TC-Heavy.ttf: out/MSOffice-RHR-TC-Heavy.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansTC-Heavy.otd: src/SourceHanSansTC-Heavy.ttf 
 	otfccdump -o $@ $^
@@ -491,7 +491,7 @@ out/MSOffice-RHR-HC-Heavy.otd: src/SourceHanSansHC-Heavy.otd
 	python round.py HC Heavy
 
 out/MSOffice-RHR-HC-Heavy.ttf: out/MSOffice-RHR-HC-Heavy.otd
-	otfccbuild -O2 -o $@ $^
+	otfccbuild -O2 -s -o $@ $^
 
 src/SourceHanSansHC-Heavy.otd: src/SourceHanSansHC-Heavy.ttf 
 	otfccdump -o $@ $^
