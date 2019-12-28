@@ -1,25 +1,26 @@
-# Resource Han Rounded
+# Resource Han Rounded for Microsoft Office
 
-This font is derived from [Source Han Sans](https://github.com/adobe-fonts/source-han-sans).
+Resource Han Rounded with shorter name.
 
-![Preview](preview.png)
+| Typographic Subfamily | Font Family (NameID 1) | Font Subfamily (NameID 2) | MSOffice Font Menu       |
+| --------------------- | ---------------------- | ------------------------- | ------------------------ |
+| ExtraLight            | RHR _Region_ XLt       | Regular                   | RHR _Region_ XLt         |
+| Light                 | RHR _Region_ Lt        | Regular                   | RHR _Region_ Lt          |
+| Normal                | RHR _Region_ Nm        | Regular                   | RHR _Region_ Nm          |
+| Regular               | RHR _Region_           | Regular                   | RHR _Region_             |
+| Medium                | RHR _Region_ Md        | Regular                   | RHR _Region_ Md          |
+| Bold                  | RHR _Region_           | Bold                      | (linked to RHR _Region_) |
+| Heavy                 | RHR _Region_ Hv        | Regular                   | RHR _Region_ Hv          |
 
-## Download the Fonts<br>下载字体
+## Download
 
-[Latest Release / 最新版](https://github.com/CyanoHao/Resource-Han-Rounded/releases).
-
-* **TTF**: Each variant (J, K, SC, TC, HC) contains all glyphs, **recommended**.
-* **TTC**: Pack 5 variants to a single `ttc` file.
-* **CN**: contains almost all glyphs except Hangul.<br>包含除韩语谚文外的所有字符，**推荐简体中文用户使用**。
-* **TW** / **HK**: supports Chinese characters (漢字) defined in Big5 character set.
-* **JP**: supports kanji (漢字) defined in JIS character set.
-* **KR**: supports all Hangul (한글), and Hanja (한자) defined in KS character set.
+Distributions can be found at a [seperate repo](https://github.com/CyanoHao/MSOffice-RHR/releases).
 
 ## How to Build
 
 Dependencies: Python, [otfcc](https://github.com/caryll/otfcc), [otfcc-c2q](https://www.npmjs.com/package/otfcc-c2q), [afdko](https://pypi.org/project/afdko/).
 
-Put SHS files (OTF and Subset OTF) into `src/`, then
+Put SHS files (OTF) into `src/`, then
 ```bash
 ./configure
 make -j<threads>
@@ -29,7 +30,7 @@ make -j<threads>
 ```bash
 make out/ResourceHanRounded<var>-<w>.ttf
 ```
-where `<var>` can be one of `J`, `K`, `SC`, `TC`, `HC`, `JP`, `KR`, `CN`, `TW`, `HK`, and `<w>` can be one of `ExtraLight`, `Light`, `Normal`, `Regular`, `Medium`, `Bold`, `Heavy`.
+where `<var>` can be one of `J`, `K`, `SC`, `TC`, `HC`, and `<w>` can be one of `ExtraLight`, `Light`, `Normal`, `Regular`, `Medium`, `Bold`, `Heavy`.
 
 ## Credits
 

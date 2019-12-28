@@ -3,7 +3,7 @@ import sys
 import math
 import cmath
 
-version = "0.990"
+version = "0.991"
 samePointThreshold = 3
 
 outerRadii = { 'ExtraLight': 24, 'Light': 36, 'Normal': 48, 'Regular': 52, 'Medium': 60, 'Bold': 75, 'Heavy': 84 }
@@ -533,6 +533,20 @@ def RoundGlyph(glyph, outerRadius, innerRadius):
 
 # Name, Copyright and License
 def NameFont(font, region, weight, version):
+	shortNameMap = {
+		"Thin": "Th",
+		"ExtraLight": "XLt",
+		"Light": "Lt",
+		"SemiLight": "SmLt",
+		"Normal": "Nm",
+		"Regular": "Rg",
+		"Medium": "Md",
+		"SemiBold": "SmBd",
+		"Bold": "Bd",
+		"ExtraBold": "XBd",
+		"Heavy": "Hv",
+	}
+
 	isStandardStyle = weight == "Regular" or weight == "Bold"
 
 	font['OS_2']['achVendID'] = 'Cyan'
@@ -542,14 +556,14 @@ def NameFont(font, region, weight, version):
 			"encodingID": 1,
 			"languageID": 1033,
 			"nameID": 0,
-			"nameString": "Copyright © 2018—2019 Cyano Hao. Portions © 2014, 2015, 2018 Adobe (http://www.adobe.com/)."
+			"nameString": "Copyright © 2018—2020 Cyano Hao. Portions © 2014-2019 Adobe (http://www.adobe.com/), with Reserved Font Name 'Source'."
 		},
 		{
 			"platformID": 3,
 			"encodingID": 1,
 			"languageID": 1033,
 			"nameID": 1,
-			"nameString": "Resource Han Rounded {}{}".format(region, "" if isStandardStyle else " " + weight)
+			"nameString": "RHR {}{}".format(region, "" if isStandardStyle else " " + shortNameMap[weight])
 		},
 		{
 			"platformID": 3,
@@ -563,14 +577,14 @@ def NameFont(font, region, weight, version):
 			"encodingID": 1,
 			"languageID": 1033,
 			"nameID": 3,
-			"nameString": "Resource Han Rounded {} {} {}".format(region, weight, version)
+			"nameString": "RHR {} {} {}".format(region, weight, version)
 		},
 		{
 			"platformID": 3,
 			"encodingID": 1,
 			"languageID": 1033,
 			"nameID": 4,
-			"nameString": "Resource Han Rounded {} {}".format(region, weight)
+			"nameString": "RHR {} {}".format(region, weight)
 		},
 		{
 			"platformID": 3,
@@ -584,7 +598,7 @@ def NameFont(font, region, weight, version):
 			"encodingID": 1,
 			"languageID": 1033,
 			"nameID": 6,
-			"nameString": "Resource-Han-Rounded-{}-{}".format(region, weight)
+			"nameString": "RHR-{}-{}".format(region, shortNameMap[weight])
 		},
 		{
 			"platformID": 3,
@@ -626,7 +640,7 @@ def NameFont(font, region, weight, version):
 			"encodingID": 1,
 			"languageID": 1033,
 			"nameID": 16,
-			"nameString": "Resource Han Rounded {}".format(region)
+			"nameString": "RHR {}".format(region)
 		},
 		{
 			"platformID": 3,
@@ -650,7 +664,7 @@ def RoundFont(region, weight):
 
 	# output
 	outStr = json.dumps(baseFont, ensure_ascii=False)
-	with open("out/ResourceHanRounded{}-{}.otd".format(region, weight), 'w') as outFile:
+	with open("out/MSOffice-RHR-{}-{}.otd".format(region, weight), 'w') as outFile:
 		outFile.write(outStr)
 
 

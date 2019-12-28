@@ -1,4 +1,4 @@
-region=(J K SC TC HC JP KR CN TW HK)
+region=(J K SC TC HC)
 
 weight=(ExtraLight Light Normal Regular Medium Bold Heavy)
 
@@ -16,20 +16,20 @@ EOF
 
 for w in ${weight[@]}; do
 	cat >>Makefile <<EOF
-$w: ttc/ResourceHanRounded-$w.ttc $(echo $(for r in ${region[@]} ; do echo out/ResourceHanRounded$r-$w.ttf; done))
+$w: ttc/MSOffice-RHR-$w.ttc $(echo $(for r in ${region[@]} ; do echo out/MSOffice-RHR-$r-$w.ttf; done))
 
-ttc/ResourceHanRounded-$w.ttc: $(echo out/ResourceHanRounded{J,K,SC,TC,HC}-$w.ttf)
+ttc/MSOffice-RHR-$w.ttc: $(echo out/MSOffice-RHR-{J,K,SC,TC,HC}-$w.ttf)
 	mkdir -p ttc
 	otf2otc -o \$@ \$^
 
 EOF
 	for r in ${region[@]}; do
 		cat >>Makefile <<EOF
-out/ResourceHanRounded$r-$w.otd: src/SourceHanSans$r-$w.otd
+out/MSOffice-RHR-$r-$w.otd: src/SourceHanSans$r-$w.otd
 	mkdir -p out
 	python round.py $r $w
 
-out/ResourceHanRounded$r-$w.ttf: out/ResourceHanRounded$r-$w.otd
+out/MSOffice-RHR-$r-$w.ttf: out/MSOffice-RHR-$r-$w.otd
 	otfccbuild -O2 -o \$@ $^
 
 src/SourceHanSans$r-$w.otd: src/SourceHanSans$r-$w.ttf 
