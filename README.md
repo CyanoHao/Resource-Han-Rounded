@@ -8,6 +8,8 @@ This font is derived from [Source Han Sans](https://github.com/adobe-fonts/sourc
 
 [Latest Release](https://github.com/CyanoHao/Resource-Han-Rounded/releases).
 
+For usage with Microsoft Office series software, please visit [MSOffice-RHR](https://github.com/CyanoHao/MSOffice-RHR) for a shorter name version to prevent bugs in software.
+
 * **TTF**: language-specific TTFs, recommended for legacy typographic technology or futher development.
 * **TTC**: pack 5 TTFs to a single TTC file for each weight, recommended for modern typographic technology.
 * **CN** / **TW** / **HK** / **JP** / **KR**: region-specific subset TTFs, following [Source Han Sans](https://github.com/adobe-fonts/source-han-sans) notations.
