@@ -2,6 +2,7 @@ import json
 import sys
 import math
 import cmath
+import codecs
 
 version = "0.990"
 samePointThreshold = 3
@@ -650,7 +651,7 @@ def RoundFont(region, weight):
 
 	# output
 	outStr = json.dumps(baseFont, ensure_ascii=False)
-	with open("out/ResourceHanRounded{}-{}.otd".format(region, weight), 'w') as outFile:
+	with codecs.open("out/ResourceHanRounded{}-{}.otd".format(region, weight), 'w', 'UTF-8') as outFile:
 		outFile.write(outStr)
 
 
