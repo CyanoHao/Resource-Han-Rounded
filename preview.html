@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+
+<head>
+  <meta charset="utf-8">
+  <style>
+    @font-face {
+      font-family: "RHR CN VF";
+      src: url("./rhr-cn.otf") format("opentype");
+    }
+
+    div#preview :lang(lzh-Hant-CN),
+    div#preview :lang(lzh-Hans-CN) {
+      font-size: 3em;
+      font-family: "RHR CN VF";
+    }
+  </style>
+</head>
+
+<body>
+  <script>
+    function updateVariation() {
+      const weight = document.getElementById("weight-slider").value;
+      const roundness = document.getElementById("roundness-slider").value;
+      document.getElementById("weight-value").innerText = weight;
+      document.getElementById("roundness-value").innerText = roundness;
+      document.getElementById("preview").style.cssText = `font-variation-settings: 'wght' ${weight}, 'ROND' ${roundness}`;
+    }
+  </script>
+
+  <div>
+    <span>Weight:</span>
+    <span id="weight-value">400</span>
+    <input type="range" id="weight-slider" name="weight" value="400" min="250" max="900" onchange="updateVariation()" />
+  </div>
+  <div>
+    <span>Roundness:</span>
+    <span id="roundness-value">100</span>
+    <input type="range" id="roundness-slider" name="roundness" value="100" min="0" max="100" onchange="updateVariation()" />
+  </div>
+
+  <div id="preview">
+    <p lang="lzh-Hant-CN">明月幾時有？把酒問青天。不知天上宫闕，今夕是何年？我欲乘風歸去，又恐瓊樓玉宇，高處不勝寒；起舞弄清影，何似在人間？</p>
+    <p lang="lzh-Hant-CN">轉朱閣，低綺户，照無眠；不應有恨，何事長向别時圓？人有悲歡離合，月有陰晴圓缺，此事古難全；但願人長久，千里共嬋娟。</p>
+    <p lang="lzh-Hans-CN">明月几时有？把酒问青天。不知天上宫阙，今夕是何年？我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间？</p>
+    <p lang="lzh-Hans-CN">转朱阁，低绮户，照无眠。不应有恨，何事长向别时圆？人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。</p>
+  </div>
+</body>
+
+</html>
