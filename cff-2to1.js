@@ -3,7 +3,10 @@
 const fs = require("fs");
 const { FontIo, Ot } = require("ot-builder");
 
-const iOtfBuf = fs.readFileSync("rhr-cn-instance.ttf");
+const iFilename = process.argv[2];
+const oFilename = process.argv[3];
+
+const iOtfBuf = fs.readFileSync(iFilename);
 const iSfnt = FontIo.readSfntOtf(iOtfBuf);
 const font = FontIo.readFont(iSfnt, Ot.ListGlyphStoreFactory);
 
@@ -16,4 +19,4 @@ font.cff.fdSelect = oldCff.fdSelect;
 
 const oSfnt = FontIo.writeFont(font);
 const oOtfBuf = FontIo.writeSfntOtf(oSfnt);
-fs.writeFileSync("rhr-cn-cff1.otf", oOtfBuf);
+fs.writeFileSync(oFilename, oOtfBuf);
