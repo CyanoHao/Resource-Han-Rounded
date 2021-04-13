@@ -117,7 +117,7 @@ function splitContour(contour) {
 							current.m0.t1 = { x: (current.m0.p2.x - current.m0.p1.x) / 2, y: (current.m0.p2.y - current.m0.p1.y) / 2 };
 							current.m0.t2 = current.m0.t1;
 							current.m1.p2 = { x: m1x, y: m1y };
-							current.m1.t1 = { x: (current.m1.p2.x - current.m0.p1.x) / 2, y: (current.m1.p2.y - current.m1.p1.y) / 2 };
+							current.m1.t1 = { x: (current.m1.p2.x - current.m1.p1.x) / 2, y: (current.m1.p2.y - current.m1.p1.y) / 2 };
 							current.m1.t2 = current.m1.t1;
 							segments.push(current);
 						}
