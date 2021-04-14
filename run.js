@@ -45,10 +45,20 @@ masterSet.getOrPush(masterWghtMaxRondMin);
 masterSet.getOrPush(masterWghtMaxRondMax);
 const valueFactory = new Ot.Var.ValueFactory(masterSet);
 
+// round to 1/precision, where precision should be power of 2 to get smaller size
+function roundTo(x, precision) {
+	return Math.round(x * precision) / precision;
+}
+
 // create Ot.Var.Value from values of 4 vertices of the region.
 function makeVariance(
 	valueWghtMinRondMin, valueWghtMinRondMax,
-	valueWghtMaxRondMin, valueWghtMaxRondMax) {
+	valueWghtMaxRondMin, valueWghtMaxRondMax,
+	precision = 1) {
+	valueWghtMinRondMin = roundTo(valueWghtMinRondMin, precision);
+	valueWghtMinRondMax = roundTo(valueWghtMinRondMax, precision);
+	valueWghtMaxRondMin = roundTo(valueWghtMaxRondMin, precision);
+	valueWghtMaxRondMax = roundTo(valueWghtMaxRondMax, precision);
 	const origin = valueWghtMinRondMax
 	return valueFactory.create(origin, [
 		[masterWghtMinRondMin, valueWghtMinRondMin - origin],
@@ -61,7 +71,7 @@ function makeVariance(
 // transform
 //
 
-const radius = { min: 24, max: 90, inner: 5 };
+const radius = { min: 18, max: 72, inner: 6 };
 
 // extract values of 2 masters.
 const instanceShsWghtMax = new Map([[dimWght, 1]]);
@@ -320,7 +330,6 @@ function calculateRadius(prev, cur, next) {
 	const m1Coeff = coefficientForm(cur.m1, cur.type);
 	let m1T1 = findDistanceFromBegin(m1Coeff, m1Radius1);
 	let m1T2 = findDistanceFromEnd(m1Coeff, m1Radius2);
-	console.log(cur, m1T1, m1T2);
 	if (m1T1 <= m1T2)
 		;
 	else {
@@ -329,6 +338,30 @@ function calculateRadius(prev, cur, next) {
 	}
 
 	return [m0T1, m0T2, m1T1, m1T2];
+}
+
+function subdivideImpl(master, t) {
+	// curve division, see https://math.stackexchange.com/questions/877725
+	const { p1, c1, c2, p2 } = master;
+	const b = { x: (1 - t) * p1.x + t * c1.x, y: (1 - t) * p1.y + t * c1.y };
+	const _ = { x: (1 - t) * c1.x + t * c2.x, y: (1 - t) * c1.y + t * c2.y };
+	const f = { x: (1 - t) * c2.x + t * p2.x, y: (1 - t) * c2.y + t * p2.y };
+	const c = { x: (1 - t) * b.x + t * _.x, y: (1 - t) * b.y + t * _.y };
+	const e = { x: (1 - t) * _.x + t * f.x, y: (1 - t) * _.y + t * f.y };
+	const d = { x: (1 - t) * c.x + t * e.x, y: (1 - t) * c.y + t * e.y };
+	return [{ p1: p1, c1: b, c2: c, p2: d }, { p1: d, c1: e, c2: f, p2: p2 }];
+}
+
+function subdivide(master, t1, t2) {
+	if (t1 >= t2) {
+		const t = (t1 + t2) / 2;
+		const coeff = coefficientForm(master, "curve");
+		const p = pointAt(coeff, t);
+		return { p1: p, c1: p, p2: p, c2: p };
+	}
+	let sub = subdivideImpl(master, t1)[1];
+	sub = subdivideImpl(sub, (t2 - t1) / (1 - t1))[0];
+	return sub;
 }
 
 function transformContour(contour) {
@@ -351,6 +384,11 @@ function transformContour(contour) {
 		const [m0T1, m0T2, m1T1, m1T2] = calculateRadius(prev, cur, next);
 		const m0Coeff = coefficientForm(cur.m0, cur.type);
 		const m1Coeff = coefficientForm(cur.m1, cur.type);
+		let m0Sub, m1Sub;
+		if (cur.type == "curve") {
+			m0Sub = subdivide(cur.m0, m0T1, m0T2);
+			m1Sub = subdivide(cur.m1, m1T1, m1T2);
+		}
 
 		// handle the first end point and control point
 		if (m0T1 == 0 && m1T1 == 0) { // almost linear, keep this end point and control point
@@ -370,11 +408,9 @@ function transformContour(contour) {
 			const m0NewP1 = pointAt(m0Coeff, m0T1);
 			const m0Radius = distance(cur.m0.p1, m0NewP1);
 			const m0NewT1Direction = normalize(derivativeAt(m0Coeff, m0T1));
-			const m0NewT1Length = abs(cur.m0.t1) * (m0T2 - m0T1);
 			const m1NewP1 = pointAt(m1Coeff, m1T1);
 			const m1Radius = distance(cur.m1.p1, m1NewP1);
 			const m1NewT1Direction = normalize(derivativeAt(m1Coeff, m1T1));
-			const m1NewT1Length = abs(cur.m1.t1) * (m1T2 - m1T1);
 
 			m0Seg.push({ // control point
 				x: m0NewP1.x - 0.5 * m0NewT1Direction.x * m0Radius,
@@ -399,14 +435,8 @@ function transformContour(contour) {
 			kind.push(Ot.Glyph.PointType.Follow);
 			kind.push(Ot.Glyph.PointType.Corner);
 			if (cur.type == "curve") {
-				m0Seg.push({ // control point
-					x: m0NewP1.x + m0NewT1Direction.x * m0NewT1Length,
-					y: m0NewP1.y + m0NewT1Direction.y * m0NewT1Length
-				});
-				m1Seg.push({ // control point
-					x: m1NewP1.x + m1NewT1Direction.x * m1NewT1Length,
-					y: m1NewP1.y + m1NewT1Direction.y * m1NewT1Length
-				});
+				m0Seg.push(m0Sub.c1);
+				m1Seg.push(m1Sub.c1);
 				shsM0Seg.push(cur.m0.c1);
 				shsM1Seg.push(cur.m1.c1);
 				kind.push(Ot.Glyph.PointType.Lead);
@@ -427,21 +457,15 @@ function transformContour(contour) {
 			const m0NewP2 = pointAt(m0Coeff, m0T2);
 			const m0Radius = distance(cur.m0.p2, m0NewP2);
 			const m0NewT2Direction = normalize(derivativeAt(m0Coeff, m0T2));
-			const m0NewT2Length = abs(cur.m0.t2) * (m0T2 - m0T1);
+			const m0NewT2Length = abs(cur.m0.t2) * (m0T2 - m0T1) * m0T2;
 			const m1NewP2 = pointAt(m1Coeff, m1T2);
 			const m1Radius = distance(cur.m1.p2, m1NewP2);
 			const m1NewT2Direction = normalize(derivativeAt(m1Coeff, m1T2));
-			const m1NewT2Length = abs(cur.m1.t2) * (m1T2 - m1T1);
+			const m1NewT2Length = abs(cur.m1.t2) * (m1T2 - m1T1) * m1T2;
 
 			if (cur.type == "curve") {
-				m0Seg.push({ // control point
-					x: m0NewP2.x - m0NewT2Direction.x * m0NewT2Length,
-					y: m0NewP2.y - m0NewT2Direction.y * m0NewT2Length
-				});
-				m1Seg.push({ // control point
-					x: m1NewP2.x - m1NewT2Direction.x * m1NewT2Length,
-					y: m1NewP2.y - m1NewT2Direction.y * m1NewT2Length
-				});
+				m0Seg.push(m0Sub.c2);
+				m1Seg.push(m1Sub.c2);
 				shsM0Seg.push(cur.m0.c2);
 				shsM1Seg.push(cur.m1.c2);
 				kind.push(Ot.Glyph.PointType.Follow);
@@ -482,7 +506,7 @@ function transformContour(contour) {
 	if (result[0].kind != Ot.Glyph.PointType.Corner)
 		// if not end point, it must be second control point
 		result.push(result.shift());
-	console.log(contour, result);
+	// console.log(contour, result);
 	return result;
 }
 
