@@ -80,78 +80,69 @@ function extendShortStroke(font) {
 		glyph.geometry.contours = [];
 
 		for (const contour of oldContours) {
-			// find possible 横, skip that contains more or less points.
-			if (contour.length != 4) {
+			// find possible 横s
+			if (contour.length < 4) {
 				glyph.geometry.contours.push(contour);
 				continue;
 			}
 
-			// check witch points are on right end
-			let bottomRightIdx = undefined;
-			let topRightIdx = undefined;
+			const newContour = [...contour];
+
 			for (let idx = 0; idx < contour.length; idx++) {
 				if (
+					// is right end
 					canBeRightEnd(contour[idx], circularAt(contour, idx + 1)) &&
-					approxEq(circularAt(contour, idx - 1).x, circularAt(contour, idx + 2).x) &&
 					approxEq(contour[idx].y, circularAt(contour, idx - 1).y) &&
 					approxEq(circularAt(contour, idx + 1).y, circularAt(contour, idx + 2).y)
 				) {
-					bottomRightIdx = idx;
-					topRightIdx = (idx + 1) % 4;
-					break;
-				}
-			}
-			if (typeof bottomRightIdx != 'number') {
-				glyph.geometry.contours.push(contour);
-				continue;
-			}
 
-			const bottomRight = contour[bottomRightIdx];
-			const topRight = contour[topRightIdx];
-			let extended = false;
+					const bottomRightIdx = idx;
+					const topRightIdx = (idx + 1) % contour.length;
+					const bottomRight = contour[idx];
+					const topRight = circularAt(contour, idx + 1);
 
-			for (const ctr of oldContours) {
-				// find possible 竖s
-				if (ctr == contour || ctr.length < 4)
-					continue;
-				for (let idx = 0; idx < ctr.length; idx++) {
-					if (
-						// is top end
-						canBeTopEnd(ctr[idx], circularAt(ctr, idx + 1)) &&
-						approxEq(ctr[idx].x, circularAt(ctr, idx - 1).x) &&
-						approxEq(circularAt(ctr, idx + 1).x, circularAt(ctr, idx + 2).x) &&
-						// and 横's right end inside 竖
-						approxEq(ctr[idx].y, topRight.y) &&
-						isBetween(circularAt(ctr, idx + 1).x, topRight.x, ctr[idx].x)
-					) {
-						const newContour = [...contour];
-						newContour[bottomRightIdx] = {
-							x: makeVariance(
-								Ot.Var.Ops.originOf(ctr[idx].x),
-								Ot.Var.Ops.evaluate(ctr[idx].x, instanceShsWghtMax)
-							),
-							y: bottomRight.y,
-							kind: 0,
-						};
-						newContour[topRightIdx] = {
-							x: makeVariance(
-								Ot.Var.Ops.originOf(ctr[idx].x),
-								Ot.Var.Ops.evaluate(ctr[idx].x, instanceShsWghtMax)
-							),
-							y: topRight.y,
-							kind: 0,
-						};
-						glyph.geometry.contours.push(newContour);
-						extended = true;
-						break;
+					for (const ctr of oldContours) {
+						// find possible 竖s
+						if (ctr == contour || ctr.length < 4)
+							continue;
+						let extended = false;
+						for (let ctrIdx = 0; ctrIdx < ctr.length; ctrIdx++) {
+							if (
+								// is top end
+								canBeTopEnd(ctr[ctrIdx], circularAt(ctr, ctrIdx + 1)) &&
+								approxEq(ctr[ctrIdx].x, circularAt(ctr, ctrIdx - 1).x) &&
+								approxEq(circularAt(ctr, ctrIdx + 1).x, circularAt(ctr, ctrIdx + 2).x) &&
+								// and 横's right end inside 竖
+								approxEq(ctr[ctrIdx].y, topRight.y) &&
+								isBetween(circularAt(ctr, ctrIdx + 1).x, topRight.x, ctr[ctrIdx].x)
+							) {
+								newContour[bottomRightIdx] = {
+									x: makeVariance(
+										Ot.Var.Ops.originOf(ctr[ctrIdx].x),
+										Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax)
+									),
+									y: bottomRight.y,
+									kind: 0,
+								};
+								newContour[topRightIdx] = {
+									x: makeVariance(
+										Ot.Var.Ops.originOf(ctr[ctrIdx].x),
+										Ot.Var.Ops.evaluate(ctr[ctrIdx].x, instanceShsWghtMax)
+									),
+									y: topRight.y,
+									kind: 0,
+								};
+								extended = true;
+								break;
+							}
+						}
+						if (extended)
+							break;
 					}
 				}
-				if (extended)
-					break;
 			}
 
-			if (!extended)
-				glyph.geometry.contours.push(contour);
+			glyph.geometry.contours.push(newContour);
 		}
 	}
 
