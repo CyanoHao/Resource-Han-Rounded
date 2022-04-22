@@ -9,7 +9,7 @@ function roundFont(font) {
 	//
 
 	const dimWght = font.fvar.axes[0].dim
-	const dimRond = new Ot.Var.Dim('rond', 0, 100, 100);
+	const dimRond = new Ot.Var.Dim('ROND', 0, 100, 100);
 	const dimRondNameId = 256 + 32;
 	font.fvar.axes.push(new Ot.Fvar.Axis(dimRond, Ot.Fvar.AxisFlags.Default, dimRondNameId));
 	font.name.records.push({ platformID: 3, encodingID: 1, languageID: 0x0409, nameID: dimRondNameId, value: "Roundness" });
@@ -512,7 +512,7 @@ function roundFont(font) {
 		}
 		count++;
 		if (count % 1000 == 0)
-			console.log(count, "glyphs processed.");
+			console.log("roundFont:", count, "glyphs processed.");
 	}
 }
 

@@ -2,49 +2,129 @@
 <html lang="en-GB">
 
 <head>
-  <meta charset="utf-8">
-  <style>
-    @font-face {
-      font-family: "RHR CN VF";
-      src: url("./rhr-cn.otf") format("opentype");
-    }
+	<meta charset="utf-8">
+	<link rel="stylesheet" href="https://unpkg.com/layui@2.6.8/dist/css/layui.css">
+	<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>
+	<style>
+		@font-face {
+			font-family: "RHR CN VF";
+			src: url("./ResourceHanRoundedCN-VF.otf") format("opentype");
+		}
 
-    div#preview :lang(lzh-Hant-CN),
-    div#preview :lang(lzh-Hans-CN) {
-      font-size: 3em;
-      font-family: "RHR CN VF";
-    }
-  </style>
+		body {
+			background-color: #eee;
+		}
+
+		#main {
+			padding: 6px;
+			margin: 0px;
+		}
+
+		.layui-card-body {
+			line-height: unset;
+		}
+
+		.layui-input-slider {
+			padding-top: 16px;
+			max-width: 480px;
+		}
+
+		.preview:lang(lzh-Hant-CN),
+		.preview:lang(lzh-Hans-CN) {
+			font-size: 3em;
+			font-family: "RHR CN VF";
+		}
+	</style>
+
+	<style id="font-variation-stylesheet"></style>
 </head>
 
 <body>
-  <script>
-    function updateVariation() {
-      const weight = document.getElementById("weight-slider").value;
-      const roundness = document.getElementById("roundness-slider").value;
-      document.getElementById("weight-value").innerText = weight;
-      document.getElementById("roundness-value").innerText = roundness;
-      document.getElementById("preview").style.cssText = `font-variation-settings: 'wght' ${weight}, 'ROND' ${roundness}`;
-    }
-  </script>
+	<main id="main" class="layui-layout-body layui-row layui-col-space12">
+		<div class="layui-col-sm12 layui-col-md12">
+			<form class="layui-card layui-form" action="">
+				<div class="layui-card-header">Settings</div>
+				<div class="layui-card-body">
+					<div class="layui-form-item">
+						<label class="layui-form-label">Weight</label>
+						<div class="layui-input-block layui-input-slider">
+							<div id="weight-slider"></div>
+						</div>
+					</div>
+					<div class="layui-form-item">
+						<label class="layui-form-label">Roundness</label>
+						<div class="layui-input-block layui-input-slider">
+							<div id="roundness-slider"></div>
+						</div>
+					</div>
+				</div>
+			</form>
+		</div>
 
-  <div>
-    <span>Weight:</span>
-    <span id="weight-value">400</span>
-    <input type="range" id="weight-slider" name="weight" value="400" min="250" max="900" onchange="updateVariation()" />
-  </div>
-  <div>
-    <span>Roundness:</span>
-    <span id="roundness-value">100</span>
-    <input type="range" id="roundness-slider" name="roundness" value="100" min="0" max="100" onchange="updateVariation()" />
-  </div>
+		<div class="layui-col-sm12 layui-col-md6">
+			<div class="layui-card">
+				<div class="layui-card-header">大陸繁體</div>
+				<div class="layui-card-body">
+					<div class="preview" lang="lzh-Hant-CN">
+						<p>明月幾時有？把酒問青天。不知天上宫闕，今夕是何年？我欲乘風歸去，又恐瓊樓玉宇，高處不勝寒；起舞弄清影，何似在人間？</p>
+						<p>轉朱閣，低綺户，照無眠；不應有恨，何事長向别時圓？人有悲歡離合，月有陰晴圓缺，此事古難全；但願人長久，千里共嬋娟。</p>
+					</div>
+				</div>
+			</div>
+		</div>
 
-  <div id="preview">
-    <p lang="lzh-Hant-CN">明月幾時有？把酒問青天。不知天上宫闕，今夕是何年？我欲乘風歸去，又恐瓊樓玉宇，高處不勝寒；起舞弄清影，何似在人間？</p>
-    <p lang="lzh-Hant-CN">轉朱閣，低綺户，照無眠；不應有恨，何事長向别時圓？人有悲歡離合，月有陰晴圓缺，此事古難全；但願人長久，千里共嬋娟。</p>
-    <p lang="lzh-Hans-CN">明月几时有？把酒问青天。不知天上宫阙，今夕是何年？我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间？</p>
-    <p lang="lzh-Hans-CN">转朱阁，低绮户，照无眠。不应有恨，何事长向别时圆？人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。</p>
-  </div>
+		<div class="layui-col-sm12 layui-col-md6">
+			<div class="layui-card">
+				<div class="layui-card-header">大陆简体</div>
+				<div class="layui-card-body">
+					<div class="preview" lang="lzh-Hans-CN">
+						<p>明月几时有？把酒问青天。不知天上宫阙，今夕是何年？我欲乘风归去，又恐琼楼玉宇，高处不胜寒。起舞弄清影，何似在人间？</p>
+						<p>转朱阁，低绮户，照无眠。不应有恨，何事长向别时圆？人有悲欢离合，月有阴晴圆缺，此事古难全。但愿人长久，千里共婵娟。</p>
+					</div>
+				</div>
+			</div>
+		</div>
+	</main>
+
+	<script>
+		const fontVariation = {
+			weight: 400,
+			roundness: 100,
+		}
+
+		const weightSlider = layui.slider.render({
+			elem: '#weight-slider',
+			min: 250,
+			value: fontVariation.weight,
+			max: 900,
+			step: 10,
+			change: value => {
+				fontVariation.weight = value;
+				updateVariation();
+			},
+		});
+
+		const roundnessSlider = layui.slider.render({
+			elem: '#roundness-slider',
+			min: 0,
+			value: fontVariation.roundness,
+			max: 100,
+			step: 1,
+			change: value => {
+				fontVariation.roundness = value;
+				updateVariation();
+			},
+		});
+
+		function updateVariation() {
+			document.getElementById('font-variation-stylesheet').innerHTML = `.preview { font-variation-settings: 'wght' ${fontVariation.weight}, 'ROND' ${fontVariation.roundness}; }`;
+			// const previews = document.getElementsByClassName("preview");
+			// console.log(previews);
+			// previews.style.cssText = `font-variation-settings: 'wght' ${fontVariation.weight}, 'ROND' ${fontVariation.roundness}`;
+		}
+
+		updateVariation();
+	</script>
 </body>
 
 </html>

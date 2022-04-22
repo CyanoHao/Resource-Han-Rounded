@@ -12,10 +12,8 @@ function AxisRectifier() {
 }
 
 function ValueRectifier(instance) {
-	return {
-		coord: x => Ot.Var.Ops.evaluate(x, instance),
-		cv: x => Ot.Var.Ops.evaluate(x, instance)
-	};
+	const instanceValue = x => Math.round(Ot.Var.Ops.evaluate(x, instance));
+	return { coord: instanceValue, cv: instanceValue };
 }
 
 function convertToCff1(font) {
@@ -28,11 +26,11 @@ function convertToCff1(font) {
 }
 
 function instanceFont(font, parameters) {
-	const dims = new Map();
+	const dims = {};
 	for (const axis of font.fvar.axes) {
 		const dim = axis.dim;
 		const tag = dim.tag;
-		dims.set(tag, dim);
+		dims[tag] = dim;
 	}
 	const instance = new Map(parameters.map(([tag, value]) => [dims[tag], value]));
 	Rectify.inPlaceRectifyFontCoords(
@@ -40,7 +38,7 @@ function instanceFont(font, parameters) {
 		Rectify.IdPointAttachRectifier,
 		font
 	);
-	font.fvar = font.avar = null;
+	font.stat = font.fvar = font.avar = null;
 	convertToCff1(font);
 }
 
