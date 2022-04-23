@@ -46,7 +46,11 @@ make -j<n> all
 
 Other `make` targets:
 
+* `cff2-otc`: OpenType/CFF2 OTC.
 * `cff2-vf`: OpenType/CFF2 OTFs and subset OTFs.
+* `dist-cff2-otc`: OpenType/CFF2 OTC distribution package (`RHR-CFF2-OTC-<version>.7z`).
+* `dist-cff2-otf`: OpenType/CFF2 OTFs distribution package (`RHR-CFF2-OTF-<version>.7z`).
+* `dist-cff2-subsetotf`: OpenType/CFF2 subset OTF distribution packages (`RHR-CFF2-<CN|TW|HK|J|K>-<version>.7z`).
 
 ## Credits
 
