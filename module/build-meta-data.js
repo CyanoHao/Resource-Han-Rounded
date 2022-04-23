@@ -40,6 +40,7 @@ function makeVFBaseNameTable(subfamily) {
 function buildVFMetaData(font, param) {
 	const { subfamily } = param;
 
+	font.head.fontRevision = config.version.head;
 	font.os2.achVendID = config.vendor.id;
 	font.os2.usWeightClass = 200;
 

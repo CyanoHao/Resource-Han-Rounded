@@ -1,5 +1,7 @@
 "use strict";
 
+const { dirname } = require('path');
+
 const config = {
 	memory: 14, // per job, in GiB
 	name: {
@@ -7,8 +9,8 @@ const config = {
 		postscript: 'ResourceHanRounded',
 	},
 	version: {
-		sfnt: 1.901,
-		name: "1.901",
+		head: 1.910,
+		name: "1.910",
 	},
 	vendor: {
 		id: 'Cyan',
@@ -80,7 +82,7 @@ const config = {
 	},
 	roundness: {
 		avar: [
-			// linear fit to ‘missing area’w
+			// linear fit to ‘missing area’
 			...new Array(100).fill(0).map((_, i) => [i * i / 10000 - 1, i / 100 - 1]),
 			[0, 0],
 			[1, 1],
@@ -105,24 +107,32 @@ module.exports = {
 
 function main() {
 	const node = `node --max-old-space-size=${config.memory * 1024}`;
+	const ttcize = `node node_modules/otb-ttc-bundle/bin/otb-ttc-bundle`;
+	const sevenZip = `7z a -t7z -m0=LZMA:d=512m:fb=273 -ms`;
+	const quick7z = `cp $^ $(shell dirname $@) ; cd $(shell dirname $@) ; ${sevenZip} $(shell basename $@) $(shell basename -a $^) ; rm $(shell basename -a $^)`;
+
 	const makeRule = {
 		'.PHONY': {
 			dependency: ['all', 'clean', 'cleanall', 'cff2-vf', 'cff1-instance'],
 			rule: [],
 		},
 		'all': {
-			dependency: ['cff2-vf', ],
+			dependency: ['cff2-vf', 'cff2-otc', 'dist-cff2-otc', 'dist-cff2-otf', 'dist-cff2-subsetotf'],
 			rule: [],
 		},
 		'clean': {
 			dependency: [],
-			rule: [ '-rm -r build/' ],
+			rule: ['-rm -r build/'],
 		},
 		'cleanall': {
 			dependency: ['clean'],
-			rule: [ '-rm -r dist/' ],
+			rule: ['-rm -r dist/'],
 		},
 		'cff2-vf': {
+			dependency: [],
+			rule: [],
+		},
+		'dist-cff2-subsetotf': {
 			dependency: [],
 			rule: [],
 		},
@@ -132,22 +142,69 @@ function main() {
 		},
 	};
 
+	// cff2-vf targets
 	for (const subfamily of config.orthography.subfamily) {
 		const cff2Filename = `build/cff2/ResourceHanRounded${subfamily}-VF.otf`;
 		const shsFilename = `src/${config.orthography.shsMap[subfamily]}-VF.otf`;
 		makeRule['cff2-vf'].dependency.push(cff2Filename);
 		makeRule[cff2Filename] = {
 			dependency: [shsFilename],
-			rule: [
-				'mkdir -p build/cff2/',
-				`${node} script/main.js '${JSON.stringify({ subfamily })}'`,
-			],
+			rule: [`${node} script/main.js '${JSON.stringify({ subfamily })}'`],
 		}
 	}
 
+	// dist-cff2-subsetotf targets
+	for (const subfamily of config.orthography.subfamily.filter(
+		e => config.orthography.ttc.indexOf(e) == -1
+	)) {
+		const packFilename = `dist/cff2-subsetotf/RHR-CFF2-${subfamily}-${config.version.name}.7z`;
+		const cff2Filename = `build/cff2/ResourceHanRounded${subfamily}-VF.otf`;
+		makeRule['dist-cff2-subsetotf'].dependency.push(packFilename);
+		makeRule[packFilename] = {
+			dependency: [cff2Filename],
+			rule: [quick7z],
+		}
+	}
+
+	function makeFriendlyRule(friendlyName, filename, dependency, rule) {
+		makeRule[friendlyName] = {
+			dependency: [filename],
+			rule: [],
+		};
+		makeRule[filename] = {
+			dependency: dependency,
+			rule: rule,
+		};
+	}
+
+	makeFriendlyRule(
+		'cff2-otc',
+		'build/cff2-otc/ResourceHanRounded-VF.ttc',
+		config.orthography.ttc.map(o => `build/cff2/ResourceHanRounded${o}-VF.otf`),
+		[`${ttcize} -o $@ $^`],
+	);
+
+	makeFriendlyRule(
+		'dist-cff2-otc',
+		`dist/cff2-otc/RHR-CFF2-OTC-${config.version.name}.7z`,
+		['build/cff2-otc/ResourceHanRounded-VF.ttc'],
+		[quick7z],
+	);
+
+	makeFriendlyRule(
+		'dist-cff2-otf',
+		`dist/cff2-otf/RHR-CFF2-OTF-${config.version.name}.7z`,
+		config.orthography.ttc.map(o => `build/cff2/ResourceHanRounded${o}-VF.otf`),
+		[quick7z],
+	);
+
+	// dump Makefile
 	for (const key in makeRule) {
 		const value = makeRule[key];
 		console.log(key, ':', ...value.dependency);
+		const targetDir = dirname(key);
+		if (targetDir != '.')
+			console.log(`\tmkdir -p ${targetDir}`);
 		for (const rule of value.rule)
 			console.log(`\t${rule}`);
 	}
