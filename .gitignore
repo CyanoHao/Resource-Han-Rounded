@@ -2,4 +2,4 @@ node_modules/
 *.otf
 *.ttf
 *.ttx
-!shs-cn.otf
+Makefile

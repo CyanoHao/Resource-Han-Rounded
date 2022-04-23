@@ -11,9 +11,9 @@ module.exports = {
 		return font;
 	},
 
-	writeOtf: function (font, filename) {
+	writeOtf: function (font, filename, optimise = true) {
 		const sfnt = FontIo.writeFont(font);
-		const otfBuf = FontIo.writeSfntOtf(sfnt);
+		const otfBuf = FontIo.writeSfntOtf(sfnt, { cff: { doLocalOptimization: optimise, doGlobalOptimization: optimise } });
 		fs.writeFileSync(filename, otfBuf);
 	},
 };
