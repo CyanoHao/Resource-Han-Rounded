@@ -12,7 +12,9 @@ This font is derived from [Source Han Sans](https://github.com/adobe-fonts/sourc
 
 [Pre-release](https://github.com/CyanoHao/Resource-Han-Rounded/releases).
 
-The pre-release currently only includes OpenType/CFF2 variable font configuration.
+The pre-release currently only includes OpenType/CFF2 variable font configurations.
+
+<!-- The pre-release currently includes OpenType/CFF2 variable font and OpenType/CFF1 instance (non-VF) configurations. -->
 
 For usage with Microsoft Office series software, please visit [MSOffice-RHR](https://github.com/CyanoHao/MSOffice-RHR) for a shorter name version to prevent bugs in software.
 
@@ -24,6 +26,14 @@ OpenType/CFF2 variable font (theoretically) works with Windows 10 1803+, macOS 1
 * **OTF**: language-specific OTFs for developers and Windows 10 1809 users.
 * **Subset OTF** (CN/TW/HK/JP/KR): region-specific subset OTFs, following [Source Han Sans](https://github.com/adobe-fonts/source-han-sans) notations.
 
+<!-- ### Configuration: OpenType/CFF1 Instance
+
+Desktop OSes since 2000 (or more specifically, Windows 2000+, MacOS 8.6+, Linux with FreeType 2.0+) support this format. However, support in applications may differ.
+
+* **OTC**: pack 5 language-specific OTFs of same weight and roundness to an OTC file, recommended for Windows 10, macOS and Linux.
+* **OTF**: language-specific OTFs for early Windows releases.
+* **Subset OTF** (CN/TW/HK/JP/KR): region-specific subset OTFs, following [Source Han Sans](https://github.com/adobe-fonts/source-han-sans) notations. -->
+
 ## How to Build
 
 Resource Han Rounded can be built on Linux or WSL (2).
@@ -34,7 +44,9 @@ Note: GNU userland is assumed in makefile. macOS is not tested.
 
 Dependencies:
 
-- [Node.js](https://nodejs.org/).
+* [Node.js](https://nodejs.org/).
+* [FontForge](https://fontforge.org/) for CFF1 optimisation.
+* [7-Zip](https://www.7-zip.org/) or p7zip for packaging.
 
 Put Source Han Sans variable OTF and subset OTF files (5 + 5 = 10 files) to `src/`, and run:
 
@@ -44,13 +56,21 @@ node configure.js >Makefile
 make -j<n> all
 ```
 
-Other `make` targets:
+Available `make` targets:
 
-* `cff2-otc`: OpenType/CFF2 OTC.
-* `cff2-vf`: OpenType/CFF2 OTFs and subset OTFs.
-* `dist-cff2-otc`: OpenType/CFF2 OTC distribution package (`RHR-CFF2-OTC-<version>.7z`).
-* `dist-cff2-otf`: OpenType/CFF2 OTFs distribution package (`RHR-CFF2-OTF-<version>.7z`).
-* `dist-cff2-subsetotf`: OpenType/CFF2 subset OTF distribution packages (`RHR-CFF2-<CN|TW|HK|J|K>-<version>.7z`).
+* OpenType/CFF2 variable font
+  * `cff2-otc`: OTC file.
+  * `cff2-vf`: OTFs and subset OTFs.
+  * `dist-cff2-otc`: OTC distribution package (`RHR-CFF2-OTC-<version>.7z`).
+  * `dist-cff2-otf`: OTFs distribution package (`RHR-CFF2-OTF-<version>.7z`).
+  * `dist-cff2-subsetotf`: subset OTF distribution packages (`RHR-CFF2-<CN|TW|HK|J|K>-<version>.7z`).
+* OpenType/CFF1 instance
+  * `cff1-otc`: OTC files.
+  * `cff1-instance`: OTFs and subset OTFs.
+  * `dist-cff1-otc`: OTC distribution package (`RHR-CFF1-OTC-<version>.7z`).
+  * `dist-cff1-otf`: OTFs distribution package (`RHR-CFF1-OTF-<version>.7z`).
+  * `dist-cff1-subsetotf`: subset OTF distribution packages (`RHR-CFF1-<CN|TW|HK|J|K>-<version>.7z`).
+* OpenType/TT hinted instance will be available later.
 
 ## Credits
 

@@ -110,8 +110,46 @@ function buildPVFMetaData(font, param) {
 	const { subfamily, roundness } = param;
 }
 
+function makeInstanceNameTable(subfamily, weight, roundness) {
+	const family = `${config.name.normal} ${subfamily}`;
+	const psFamily = `${config.name.postscript}${subfamily}`;
+	const sf = config.genSubfamilyName(weight, roundness);
+	const isWws = roundness == 100;
+	const result = [
+		makeNameEntry(nameId.Copyright, config.copyright),
+		makeNameEntry(nameId.LegacyFamily, sf.legacy[0] ? `${family} ${sf.legacy[0]}` : family),
+		makeNameEntry(nameId.LegacySubfamily, sf.legacy[1]),
+		makeNameEntry(nameId.UniqueFontId, `${config.vendor.name}: ${family} ${config.version.name}`),
+		makeNameEntry(nameId.FullFontName, family),
+		makeNameEntry(nameId.VersionString, `Version ${config.version.name}`),
+		makeNameEntry(nameId.PostscriptName, `${psFamily}-${sf.postscript}`),
+		makeNameEntry(nameId.Manufacturer, config.vendor.name),
+		makeNameEntry(nameId.Designer, config.designer),
+		makeNameEntry(nameId.UrlVendor, config.vendor.url),
+		makeNameEntry(nameId.LicenseDescription, config.license.description),
+		makeNameEntry(nameId.LicenseInfoUrl, config.license.url),
+		makeNameEntry(nameId.PreferredFamily, family),
+		makeNameEntry(nameId.PreferredSubfamily, sf.typo),
+	];
+	if (!isWws)
+		result.push(
+			makeNameEntry(nameId.WwsFamily, `${family} ${sf.wws[0]}`),
+			makeNameEntry(nameId.WwsSubfamily, sf.wws[1]),
+		);
+	return result;
+}
+
 function buildInstanceMetaData(font, param) {
 	const { subfamily, weight, roundness } = param;
+
+	font.head.fontRevision = config.version.head;
+	font.head.macStyle = weight == 700 ? Ot.Head.MacStyle.Bold : 0;
+
+	font.os2.achVendID = config.vendor.id;
+	font.os2.usWeightClass = weight;
+	font.os2.fsSelection = Ot.Os2.FsSelection.USE_TYPO_METRICS | (roundness == 100 ? Ot.Os2.FsSelection.WWS : 0) | (weight == 700 ? Ot.Os2.FsSelection.BOLD : 0) | ((weight == 400 && roundness == 100) ? Ot.Os2.FsSelection.REGULAR : 0);
+
+	font.name.records = makeInstanceNameTable(subfamily, weight, roundness);
 }
 
 module.exports = {

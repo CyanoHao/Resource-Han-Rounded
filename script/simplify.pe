@@ -1,0 +1,6 @@
+Open($1)
+SelectAll()
+RemoveOverlap()
+Simplify()
+Simplify(1|16|64, 2)
+Generate($2, '', 0x80000)

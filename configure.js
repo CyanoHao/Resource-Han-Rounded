@@ -7,6 +7,7 @@ const config = {
 	name: {
 		normal: 'Resource Han Rounded',
 		postscript: 'ResourceHanRounded',
+		package: 'RHR',
 	},
 	version: {
 		head: 1.910,
@@ -99,10 +100,42 @@ const config = {
 			[80, 100, 100, 'FullyRounded', 2],
 		],
 	},
+	genSubfamilyName: function (weight, roundness) {
+		const typoSubfamily = [];
+		const legacyFamily = [];
+		const legacySubfamily = [];
+		const roundnessName = config.roundness.nameMap[roundness];
+		if (roundnessName) {
+			typoSubfamily.push(roundnessName);
+			legacyFamily.push(roundnessName);
+		}
+		const weightName = config.weight.nameMap[weight];
+		if (weightName) {
+			typoSubfamily.push(weightName);
+			weight == 700 ? legacySubfamily.push(weightName) : legacyFamily.push(weightName);
+		}
+		return {
+			typo: typoSubfamily.length ? typoSubfamily.join(' ') : 'Regular',
+			postscript: typoSubfamily.length ? typoSubfamily.join('') : 'Regular',
+			legacy: [legacyFamily.length ? legacyFamily.join(' ') : null, legacySubfamily.length ? legacyFamily.join(' ') : 'Regular'],
+			wws: [roundnessName ? roundnessName : null, weightName ? weightName : 'Regular'],
+		}
+	},
+};
+
+const filename = {
+	shs: subfamily => `src/${config.orthography.shsMap[subfamily]}-VF.otf`,
+	cff2Vf: subfamily => `build/cff2/${config.name.postscript}${subfamily}-VF.otf`,
+	cff2Otc: () => `build/cff2-otc/${config.name.postscript}-VF.ttc`,
+	cff1Otf: (subfamily, weight, roundness) => `build/cff1/${config.name.postscript}${subfamily}-${config.genSubfamilyName(weight, roundness).postscript}.otf`,
+	cff1FfIn: (subfamily, weight, roundness) => `build/cff1/${config.name.postscript}${subfamily}-${config.genSubfamilyName(weight, roundness).postscript}.in.otf`,
+	cff1FfOut: (subfamily, weight, roundness) => `build/cff1/${config.name.postscript}${subfamily}-${config.genSubfamilyName(weight, roundness).postscript}.out.otf`,
+	cff1Otc: (weight, roundness) => `build/cff1/${config.name.postscript}-${config.genSubfamilyName(weight, roundness).postscript}.otf`,
 };
 
 module.exports = {
 	config: config,
+	filename: filename,
 };
 
 function main() {
@@ -113,11 +146,18 @@ function main() {
 
 	const makeRule = {
 		'.PHONY': {
-			dependency: ['all', 'clean', 'cleanall', 'cff2-vf', 'cff1-instance'],
+			dependency: [
+				'all', 'clean', 'cleanall',
+				'cff2-vf', 'cff2-otc', 'dist-cff2-otc', 'dist-cff2-otf', 'dist-cff2-subsetotf',
+				'cff1-instance', 'cff1-otc', 'dist-cff1-otc', 'dist-cff1-otf', 'dist-cff1-subsetotf',
+			],
 			rule: [],
 		},
 		'all': {
-			dependency: ['cff2-vf', 'cff2-otc', 'dist-cff2-otc', 'dist-cff2-otf', 'dist-cff2-subsetotf'],
+			dependency: [
+				'cff2-vf', 'cff2-otc', 'dist-cff2-otc', 'dist-cff2-otf', 'dist-cff2-subsetotf',
+				'cff1-instance', 'cff1-otc', 'dist-cff1-otc', 'dist-cff1-otf', 'dist-cff1-subsetotf',
+			],
 			rule: [],
 		},
 		'clean': {
@@ -140,30 +180,79 @@ function main() {
 			dependency: [],
 			rule: [],
 		},
+		'cff1-otc': {
+			dependency: [],
+			rule: [],
+		},
+		'dist-cff1-subsetotf': {
+			dependency: [],
+			rule: [],
+		},
 	};
 
 	// cff2-vf targets
 	for (const subfamily of config.orthography.subfamily) {
-		const cff2Filename = `build/cff2/ResourceHanRounded${subfamily}-VF.otf`;
-		const shsFilename = `src/${config.orthography.shsMap[subfamily]}-VF.otf`;
+		const cff2Filename = filename.cff2Vf(subfamily);
+		const shsFilename = filename.shs(subfamily);
 		makeRule['cff2-vf'].dependency.push(cff2Filename);
 		makeRule[cff2Filename] = {
 			dependency: [shsFilename],
 			rule: [`${node} script/main.js '${JSON.stringify({ subfamily })}'`],
-		}
+		};
 	}
 
 	// dist-cff2-subsetotf targets
 	for (const subfamily of config.orthography.subfamily.filter(
 		e => config.orthography.ttc.indexOf(e) == -1
 	)) {
-		const packFilename = `dist/cff2-subsetotf/RHR-CFF2-${subfamily}-${config.version.name}.7z`;
-		const cff2Filename = `build/cff2/ResourceHanRounded${subfamily}-VF.otf`;
+		const packFilename = `dist/cff2-subsetotf/${config.name.package}-CFF2-${subfamily}-${config.version.name}.7z`;
+		const cff2Filename = filename.cff2Vf(subfamily);
 		makeRule['dist-cff2-subsetotf'].dependency.push(packFilename);
 		makeRule[packFilename] = {
 			dependency: [cff2Filename],
 			rule: [quick7z],
+		};
+	}
+
+	// cff1-instance targets
+	for (const subfamily of config.orthography.subfamily)
+		for (const weight of config.weight.instance)
+			for (const roundness of config.roundness.instance) {
+				const cff1Filename = filename.cff1Otf(subfamily, weight, roundness);
+				const cff2Filename = filename.cff2Vf(subfamily);
+				makeRule['cff1-instance'].dependency.push(cff1Filename);
+				makeRule[cff1Filename] = {
+					dependency: [cff2Filename],
+					rule: [`${node} script/instance.js '${JSON.stringify({ subfamily, weight, roundness })}'`],
+				};
+			}
+
+	// cff1-otc targets
+	for (const weight of config.weight.instance)
+		for (const roundness of config.roundness.instance) {
+			const otcFilename = filename.cff1Otc(weight, roundness);
+			makeRule['cff1-instance'].dependency.push(otcFilename);
+			makeRule[otcFilename] = {
+				dependency: config.orthography.ttc.map(o => filename.cff1Otf(o, weight, roundness)),
+				rule: [`${ttcize} -o $@ $^`],
+			};
 		}
+
+	// dist-cff1-subsetotf targets
+	for (const subfamily of config.orthography.subfamily.filter(
+		e => config.orthography.ttc.indexOf(e) == -1
+	)) {
+		const packFilename = `dist/cff1-subsetotf/${config.name.package}-CFF1-${subfamily}-${config.version.name}.7z`;
+		const otfFilenames = config.weight.instance.map(
+			w => config.roundness.instance.map(
+				r => filename.cff1Otf(subfamily, w, r)
+			)
+		).flat(1);
+		makeRule['dist-cff2-subsetotf'].dependency.push(packFilename);
+		makeRule[packFilename] = {
+			dependency: otfFilenames,
+			rule: [quick7z],
+		};
 	}
 
 	function makeFriendlyRule(friendlyName, filename, dependency, rule) {
@@ -179,24 +268,48 @@ function main() {
 
 	makeFriendlyRule(
 		'cff2-otc',
-		'build/cff2-otc/ResourceHanRounded-VF.ttc',
-		config.orthography.ttc.map(o => `build/cff2/ResourceHanRounded${o}-VF.otf`),
+		filename.cff2Otc(),
+		config.orthography.ttc.map(o => filename.cff2Vf(o)),
 		[`${ttcize} -o $@ $^`],
 	);
 
 	makeFriendlyRule(
 		'dist-cff2-otc',
-		`dist/cff2-otc/RHR-CFF2-OTC-${config.version.name}.7z`,
-		['build/cff2-otc/ResourceHanRounded-VF.ttc'],
+		`dist/cff2-otc/${config.name.package}-CFF2-OTC-${config.version.name}.7z`,
+		[filename.cff2Otc()],
 		[quick7z],
 	);
 
 	makeFriendlyRule(
 		'dist-cff2-otf',
-		`dist/cff2-otf/RHR-CFF2-OTF-${config.version.name}.7z`,
-		config.orthography.ttc.map(o => `build/cff2/ResourceHanRounded${o}-VF.otf`),
+		`dist/cff2-otf/${config.name.package}-CFF2-OTF-${config.version.name}.7z`,
+		config.orthography.ttc.map(o => filename.cff2Vf(o)),
 		[quick7z],
 	);
+
+	makeFriendlyRule(
+		'dist-cff1-otc',
+		`dist/cff1-otc/${config.name.package}-CFF1-OTC-${config.version.name}.7z`,
+		config.weight.instance.map(
+			w => config.roundness.instance.map(
+				r => filename.cff1Otc(w, r)
+			)
+		).flat(1),
+		[quick7z],
+	)
+
+	makeFriendlyRule(
+		'dist-cff1-otf',
+		`dist/cff1-otf/${config.name.package}-CFF1-OTF-${config.version.name}.7z`,
+		config.weight.instance.map(
+			w => config.roundness.instance.map(
+				r => config.orthography.ttc.map(
+					o => filename.cff1Otf(o, w, r)
+				)
+			)
+		).flat(2),
+		[quick7z],
+	)
 
 	// dump Makefile
 	for (const key in makeRule) {
