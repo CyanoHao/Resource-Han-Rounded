@@ -130,7 +130,7 @@ const filename = {
 	cff1Otf: (subfamily, weight, roundness) => `build/cff1/${config.name.postscript}${subfamily}-${config.genSubfamilyName(weight, roundness).postscript}.otf`,
 	cff1FfIn: (subfamily, weight, roundness) => `build/cff1/${config.name.postscript}${subfamily}-${config.genSubfamilyName(weight, roundness).postscript}.in.otf`,
 	cff1FfOut: (subfamily, weight, roundness) => `build/cff1/${config.name.postscript}${subfamily}-${config.genSubfamilyName(weight, roundness).postscript}.out.otf`,
-	cff1Otc: (weight, roundness) => `build/cff1/${config.name.postscript}-${config.genSubfamilyName(weight, roundness).postscript}.otf`,
+	cff1Otc: (weight, roundness) => `build/cff1-otc/${config.name.postscript}-${config.genSubfamilyName(weight, roundness).postscript}.otf`,
 };
 
 module.exports = {

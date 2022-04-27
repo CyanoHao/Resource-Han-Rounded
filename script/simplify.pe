@@ -1,6 +1,22 @@
 Open($1)
 SelectAll()
+
+Print('fontforge: removing overlap')
 RemoveOverlap()
-Simplify()
-Simplify(1|16|64, 2)
+
+# 1|2|4|16|64: flags
+#    1 - Slopes may change at the end points
+#    2 - Points which are extremum may be removed
+#    4 - Corner points may be smoothed into curves
+#   16 - Remove bumps from lines
+#   64 - merge lines which are nearly parallel into one
+# 3: error
+# 20: tan_bounds * 100
+# 5: bump_size
+# 1: error_denom
+# 50: line_len_max
+Print('fontforge: simplifying')
+Simplify(1|2|4|16|64, 3, 20, 5, 1, 50)
+
+Print('fontforge: generating')
 Generate($2, '', 0x80000)

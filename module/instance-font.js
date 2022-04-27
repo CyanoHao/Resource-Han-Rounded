@@ -2,6 +2,7 @@
 
 const { Ot, Rectify } = require("ot-builder");
 const { readOtf, writeOtf } = require("./font-io");
+const { roundTo } = require("./util");
 
 function AxisRectifier() {
 	return {
@@ -12,17 +13,23 @@ function AxisRectifier() {
 }
 
 function ValueRectifier(instance) {
-	const instanceValue = x => Math.round(Ot.Var.Ops.evaluate(x, instance));
+	const instanceValue = x => Ot.Var.Ops.evaluate(x, instance);
 	return { coord: instanceValue, cv: instanceValue };
 }
 
 function convertToCff1(font) {
 	const oldCff = font.cff;
-	font.cff = new Ot.Cff.Table(1);
-	font.cff.postScriptFontName = "CFF2Font"; // fontTools use `CFF2Font` by default, so do we.
-	font.cff.cid = oldCff.cid;
-	font.cff.fdArray = oldCff.fdArray;
-	font.cff.fdSelect = oldCff.fdSelect;
+	const cff = new Ot.Cff.Table(1);
+	font.cff = cff;
+	cff.postScriptFontName = "CFF2Font"; // fontTools use `CFF2Font` by default, so do we.
+	const cid = new Ot.Cff.CID;
+	cff.cid = cid;
+	cid.registry = 'Adobe';
+	cid.ordering = 'Identity';
+	cid.supplement = 0;
+	cff.topDict.cidCount = font.glyphs.items.length;
+	cff.fdArray = oldCff.fdArray;
+	cff.fdSelect = oldCff.fdSelect;
 }
 
 function instanceFont(font, parameters) {
@@ -38,15 +45,20 @@ function instanceFont(font, parameters) {
 		Rectify.IdPointAttachRectifier,
 		font
 	);
-	font.stat = font.fvar = font.avar = null;
-	convertToCff1(font);
+	font.fvar = font.avar = font.stat = null;
+}
+
+function roundCoordinate(font, precision = 1) {
+	const rectifier = x => roundTo(x, precision);
+	Rectify.inPlaceRectifyFontCoords(
+		{ coord: rectifier, cv: rectifier },
+		Rectify.IdPointAttachRectifier,
+		font
+	);
 }
 
 module.exports = {
-	instanceFont: instanceFont,
-	instanceOtf: function (input, output, parameters) {
-		const font = readOtf(input);
-		instanceFont(font, parameters);
-		writeOtf(font, output);
-	},
+	instanceFont,
+	convertToCff1,
+	roundCoordinate,
 };

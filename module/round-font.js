@@ -1,6 +1,7 @@
 "use strict";
 
 const { Ot } = require("ot-builder");
+const { roundTo } = require("./util");
 
 function roundFont(font) {
 
@@ -37,11 +38,6 @@ function roundFont(font) {
 	masterSet.getOrPush(masterWghtMaxRondMin);
 	masterSet.getOrPush(masterWghtMaxRondMax);
 	const valueFactory = new Ot.Var.ValueFactory(masterSet);
-
-	// round to 1/precision, where precision should be power of 2 to get smaller size
-	function roundTo(x, precision) {
-		return Math.round(x * precision) / precision;
-	}
 
 	// create Ot.Var.Value from values of 4 vertices of the region.
 	function makeVariance(
