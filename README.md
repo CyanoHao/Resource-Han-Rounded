@@ -1,3 +1,5 @@
+*Warranty: Resource Han Rounded Fonts are under SIL Open Font License (See [OFL-License.txt](./OFL-License.txt)) while other parts are not.*
+
 # Resource Han Rounded
 
 This font is derived from [Source Han Sans](https://github.com/adobe-fonts/source-han-sans).
