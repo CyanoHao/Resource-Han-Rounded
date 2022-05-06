@@ -1,8 +1,8 @@
-*Warranty: Resource Han Rounded Fonts are under SIL Open Font License (See [OFL-License.txt](./OFL-License.txt)) while other parts are not.*
-
 # Resource Han Rounded
 
 This font is derived from [Source Han Sans](https://github.com/adobe-fonts/source-han-sans).
+
+*Warranty: the fonts are licensed under SIL Open Font License while other parts are not. See [LICENSE.md](LICENSE.md) for details.*
 
 [Live preview: font variation](https://nowar-fonts.github.io/rhr-next/)
 
@@ -36,7 +36,27 @@ Desktop OSes since 2000 (or more specifically, Windows 2000+, MacOS 8.6+, Linux 
 * **OTF**: language-specific OTFs for early Windows releases.
 * **Subset OTF** (CN/TW/HK/JP/KR): region-specific subset OTFs, following [Source Han Sans](https://github.com/adobe-fonts/source-han-sans) notations. -->
 
-## How to Build
+## Development
+
+### Project Structure
+
+Although there is `package.json`, this project is not an NPM package. `package.json` is used for quick dependency installation.
+
+
+
+```
+─┬─ src/, build/, dist/ : source fonts and generated fonts
+ ├─ res/ : resources (images, htmls, etc)
+ ├─ module/ : CommonJS modules called by scripts/*
+ ├─ script/ : main scripts that do the font manipulation
+ ├─ configure.js : configurations (name, version, exported instances, etc)
+ │                 generates makefile if run as main script
+ ├─ LICENSE.md : license clarification
+ └─ OFL-License.txt : the OFL license file for distributors
+                      (e.g. making package for Linux)
+```
+
+### How to Build
 
 Resource Han Rounded can be built on Linux or WSL (2).
 
